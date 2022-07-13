@@ -13,9 +13,8 @@ runs:
         git config user.email '<>'
         git checkout -b release/${{ inputs.version }}
         npm --no-git-tag-version version
+        npm i
         npm version ${{ inputs.version }}
-        cat package.json
-        cat package-lock.json
         git add .
         git status
         git commit --allow-empty -m 'Preparing ${{ inputs.version }} Release'
