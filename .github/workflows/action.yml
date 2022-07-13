@@ -8,20 +8,17 @@ on:
         required: true
 
 jobs:
-  git:
+  setup:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v3
         with:
           node-version: 14
       - shell: bash
-        run: |
-          echo '{test}={123} >> $GITHUB_ENV'
-          echo $TEST
-      - shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: configure_git
         run: |
           git config user.name 'Github Action'
           git config user.email '<>'
@@ -31,4 +28,9 @@ jobs:
           git commit -m "Preparing ${{ inputs.new_version }} Release"
           git push origin release/${{ inputs.new_version }}
           gh pr create --title "Prepare ${{ inputs.new_version }} Release" --body ''
+      - shell: bash
+        name: update_version
+        run: |
+          echo "updated_version=$(node -p "require('./package.json')")" >> $GITHUB_ENV
+          echo $UPDATED_VERSION
       
