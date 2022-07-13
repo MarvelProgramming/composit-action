@@ -9,11 +9,18 @@ outputs:
   bar:
     description: 'Bar'
     value: ${{ steps.foo-bar.outputs.bar }}
-runs:
-  using: 'composite'
-  steps:
-    - run: echo ${{ inputs.foo }}
-      shell: bash
-    - id: foo-bar
-      run: echo "::set-output name=bar::$(echo hello)"
-      shell: bash
+jobs:
+  test:
+    runs-on: 'composite'
+    steps:
+      - run: echo ${{ inputs.foo }}
+        shell: bash
+      - id: foo-bar
+        run: echo "::set-output name=bar::$(echo hello)"
+        shell: bash
+  test2:
+    runs-on: 'node12'
+    steps:
+      - runs: |
+          node console.log('hello world');
+        
