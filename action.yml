@@ -16,5 +16,5 @@ runs:
         npm version ${{ inputs.version }}
         git add .
         git commit --allow-empty -m 'Preparing ${{ inputs.version }} Release'
-        git push origin main
+        git push --force origin main
         gh pr create --fill
