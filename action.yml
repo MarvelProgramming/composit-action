@@ -1,7 +1,7 @@
 name: 'Extension Publisher'
 description: 'Creates a release/x.x.x branch, updates version numbers for package/package-lock, commits and pushes, and makes PR into main'
 inputs:
-  version:
+  new_version:
     description: 'The version this extension will change to.'
     required: true
 runs:
@@ -11,10 +11,10 @@ runs:
       run: |
         git config user.name 'Github Action'
         git config user.email '<>'
-        git checkout -b release/${{ inputs.version }}
+        git checkout -b release/${{ inputs.new_version }}
         npm i
-        npm --no-git-tag-version -f version ${{ inputs.version }}
+        npm --no-git-tag-version -f version ${{ inputs.new_version }}
         git add .
-        git commit -m "Preparing ${{ inputs.version }} Release"
-        git push origin release/${{ inputs.version }}
-        gh pr create --title "Prepare ${{ inputs.version }} Release" --body ''
+        git commit -m "Preparing ${{ inputs.new_version }} Release"
+        git push origin release/${{ inputs.new_version }}
+        gh pr create --title "Prepare ${{ inputs.new_version }} Release" --body ''
