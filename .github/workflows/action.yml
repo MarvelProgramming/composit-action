@@ -18,7 +18,7 @@ jobs:
       - shell: bash
         run: |
           echo '{test}={123} >> $GITHUB_ENV'
-          echo ${{ $TEST }}
+          echo $TEST
       - shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
