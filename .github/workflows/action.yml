@@ -3,7 +3,7 @@ name: 'Extension Publisher'
 on:
   workflow_call:
     inputs:
-      new_version:
+      release_type:
         type: string
         required: true
 
@@ -18,22 +18,18 @@ jobs:
         with:
           node-version: 14
       - shell: bash
-        name: configure_git
+        name: update_version
+        run: |
+          npm --no-git-tag-version version ${{ inputs.release_type }}
+          echo "updated_version=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+      - shell: bash
+        name: commit
         run: |
           git config user.name 'Github Action'
           git config user.email '<>'
-          git checkout -b release/${{ inputs.new_version }}
-          npm --no-git-tag-version version ${{ inputs.new_version }}
+          git checkout -b release/${{ env.new_version }}
           git add .
-          git commit -m "Preparing ${{ inputs.new_version }} Release"
-          git push origin release/${{ inputs.new_version }}
-          gh pr create --title "Prepare ${{ inputs.new_version }} Release" --body ''
-      - shell: bash
-        name: get_package_version
-        run: |
-          echo "updated_version=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
-      - shell: bash
-        name: show_version
-        run: |
-          echo "${{ env.updated_version }}"
+          git commit -m "Preparing ${{ env.new_version }} Release"
+          git push origin release/${{ env.new_version }}
+          gh pr create --title "Prepare ${{ env.new_version }} Release" --body ''
       
