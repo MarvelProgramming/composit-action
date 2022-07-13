@@ -1,24 +1,20 @@
-name: 'Hello World'
-description: 'testing'
+name: 'Extension Publisher'
+description: 'Creates a release/x.x.x branch, updates version numbers for package/package-lock, commits and pushes, and makes PR into main'
 inputs:
-  foo:
-    description: 'Fooey'
+  version:
+    description: 'The version this extension will change to.'
     required: true
-    default: 'Foo'
-outputs:
-  bar:
-    description: 'Bar'
-    value: ${{ steps.foo-bar.outputs.bar }}
 runs:
   using: 'composite'
+  env:
+    VERSION: ${{ inputs.version }}
   steps:
-    - run: echo ${{ inputs.foo }}
-      shell: bash
-    - id: foo-bar
+    - shell: bash
       run: |
-        git remote set-url origin git@github.com:MarvJohnson/composit-action.git
         git config user.name 'Github Action'
         git config user.email '<>'
-        git commit --allow-empty -m 'Testing'
+        git checkout -b release/$VERSION
+        npm version $VERSION
+        git commit -am 'Preparing $VERSION Release'
         git push origin main
-      shell: bash
+        gh pr create --fill
