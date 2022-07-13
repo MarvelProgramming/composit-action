@@ -16,6 +16,8 @@ jobs:
         with:
           node-version: 14
       - shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           git config user.name 'Github Action'
           git config user.email '<>'
