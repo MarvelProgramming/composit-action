@@ -18,9 +18,8 @@ jobs:
       - id: foo-bar
         run: echo "::set-output name=bar::$(echo hello)"
         shell: bash
-      - uses: actions/setup-node@v1
-          with:
-            node-version: 14
       - run: |
+          git config user.name "Github Action"
+          git config user.email "<>"
           git commit --allow-empty -m "Testing"
           git push origin main
