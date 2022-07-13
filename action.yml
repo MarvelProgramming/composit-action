@@ -16,5 +16,5 @@ runs:
         npm --no-git-tag-version -f version ${{ inputs.version }}
         git add .
         git commit -m 'Preparing ${{ inputs.version }} Release'
-        git push origin main
+        git push origin release/${{ inputs.version }}
         gh pr create --fill
