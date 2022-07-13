@@ -27,9 +27,9 @@ jobs:
         run: |
           git config user.name 'Github Action'
           git config user.email '<>'
-          git checkout -b release/${{ env.new_version }}
+          git checkout -b release/${{ env.updated_version }}
           git add .
-          git commit -m "Preparing ${{ env.new_version }} Release"
-          git push origin release/${{ env.new_version }}
-          gh pr create --title "Prepare ${{ env.new_version }} Release" --body ''
+          git commit -m "Preparing ${{ env.updated_version }} Release"
+          git push origin release/${{ env.updated_version }}
+          gh pr create --title "Prepare ${{ env.updated_version }} Release" --body ''
       
