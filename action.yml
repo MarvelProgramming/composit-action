@@ -9,17 +9,16 @@ outputs:
   bar:
     description: 'Bar'
     value: ${{ steps.foo-bar.outputs.bar }}
-jobs:
-  test:
-    runs-on: 'composite'
-    steps:
-      - run: echo ${{ inputs.foo }}
-        shell: bash
-      - id: foo-bar
-        run: |
-          git remote add origin 'git@github.com:MarvJohnson/composit-action-workflow.git'
-          git config user.name 'Github Action'
-          git config user.email '<>'
-          git commit --allow-empty -m 'Testing'
-          git push origin main
-        shell: bash
+runs:
+  using: 'composite'
+  steps:
+    - run: echo ${{ inputs.foo }}
+      shell: bash
+    - id: foo-bar
+      run: |
+        git remote add origin 'git@github.com:MarvJohnson/composit-action-workflow.git'
+        git config user.name 'Github Action'
+        git config user.email '<>'
+        git commit --allow-empty -m 'Testing'
+        git push origin main
+      shell: bash
