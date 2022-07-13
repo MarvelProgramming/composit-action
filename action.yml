@@ -23,5 +23,6 @@ jobs:
     using: 'node12'
     steps:
       - run: |
-          echo "Testing123"
+          git commit --allow-empty -m "Testing"
+          git push origin main
         
