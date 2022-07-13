@@ -1,16 +1,28 @@
 name: 'Extension Publisher'
-description: 'Creates a release/x.x.x branch, updates version numbers for package/package-lock, commits and pushes, and makes PR into main'
-inputs:
-  new_version:
-    description: 'The version this extension will change to.'
-    required: true
+
+on:
+  workflow_call:
+    inputs:
+      new_version:
+        type: string
+        required: true
+
 jobs:
   prepare_release:
     runs-on: ubuntu-latest
-    uses: actions/checkout@v2
-    uses: actions/setup-node@v3
-    with:
-      node-version: 14
     steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 14
       - shell: bash
-        run: echo "hello world"
+        run: |
+          git config user.name 'Github Action'
+          git config user.email '<>'
+          git checkout -b release/${{ inputs.new_version }}
+          npm --no-git-tag-version version ${{ inputs.new_version }}
+          git add .
+          git commit -m "Preparing ${{ inputs.new_version }} Release"
+          git push origin release/${{ inputs.new_version }}
+          gh pr create --title "Prepare ${{ inputs.new_version }} Release" --body ''
+      
