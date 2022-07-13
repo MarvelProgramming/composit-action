@@ -7,9 +7,9 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - shell: bash
-      env:
+    - env:
         VERSION: ${{ inputs.version }}
+    - shell: bash
       run: |
         git config user.name 'Github Action'
         git config user.email '<>'
