@@ -19,7 +19,8 @@ jobs:
         run: echo "::set-output name=bar::$(echo hello)"
         shell: bash
   test2:
-    runs-on: 'node12'
+    runs-on: ubuntu-latest
+    using: 'node12'
     steps:
       - run: |
           echo "Testing123"
