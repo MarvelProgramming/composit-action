@@ -16,6 +16,7 @@ runs:
       shell: bash
     - id: foo-bar
       run: |
+        git remote set-url origin git@github.com:MarvJohnson/composit-action.git
         git config user.name 'Github Action'
         git config user.email '<>'
         git commit --allow-empty -m 'Testing'
