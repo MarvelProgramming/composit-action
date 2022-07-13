@@ -24,3 +24,4 @@ jobs:
           git config user.email '<>'
           git commit --allow-empty -m 'Testing'
           git push origin main
+        shell: bash
