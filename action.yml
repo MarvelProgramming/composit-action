@@ -18,13 +18,9 @@ jobs:
       - id: foo-bar
         run: echo "::set-output name=bar::$(echo hello)"
         shell: bash
-  test2:
-    runs-on: ubuntu-latest
-    - uses: actions/setup-node@v1
-        with:
-          node-version: 14
-    steps:
+      - uses: actions/setup-node@v1
+          with:
+            node-version: 14
       - run: |
           git commit --allow-empty -m "Testing"
           git push origin main
-        
