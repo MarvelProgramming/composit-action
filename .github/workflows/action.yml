@@ -32,5 +32,5 @@ jobs:
         name: update_version
         run: |
           echo "updated_version=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
-          echo ${{ env.updated_version }}
+          echo "${{ env.updated_version }}"
       
