@@ -14,6 +14,7 @@ runs:
         git checkout -b release/${{ inputs.version }}
         npm --no-git-tag-version version
         npm version $VERSION
-        git commit -am 'Preparing ${{ inputs.version }} Release'
+        git add .
+        git commit -m 'Preparing ${{ inputs.version }} Release'
         git push origin main
         gh pr create --fill
