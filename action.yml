@@ -12,8 +12,7 @@ runs:
         git config user.name 'Github Action'
         git config user.email '<>'
         git checkout -b release/${{ inputs.new_version }}
-        npm i
-        npm --no-git-tag-version -f version ${{ inputs.new_version }}
+        npm --no-git-tag-version version ${{ inputs.new_version }}
         git add .
         git commit -m "Preparing ${{ inputs.new_version }} Release"
         git push origin release/${{ inputs.new_version }}
