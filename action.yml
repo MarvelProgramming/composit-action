@@ -17,4 +17,4 @@ runs:
         git add .
         git commit -m 'Preparing ${{ inputs.version }} Release'
         git push origin release/${{ inputs.version }}
-        gh pr create --title ${{ inputs.version }}
+        gh pr create --title ${{ inputs.version }} --body ''
