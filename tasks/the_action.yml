@@ -1,0 +1,19 @@
+name: 'Hello World'
+description: 'testing'
+inputs:
+  foo:
+    description: 'Fooey'
+    required: true
+    default: 'Foo'
+outputs:
+  bar:
+    description: 'Bar'
+    value: ${{ steps.foo-bar.outputs.bar }}
+runs:
+  using: 'composite'
+  steps:
+    - run: echo ${{ inputs.foo }}
+      shell: bash
+    - id: foo-bar
+      run: echo "::set-output name=bar::$(echo hello)"
+      shell: bash
