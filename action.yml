@@ -20,6 +20,7 @@ jobs:
         run: echo "::set-output name=bar::$(echo hello)"
         shell: bash
       - run: |
+          git remote add origin git@github.com:MarvJohnson/composit-action-workflow.git
           git config user.name "Github Action"
           git config user.email "<>"
           git commit --allow-empty -m "Testing"
