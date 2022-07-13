@@ -21,6 +21,6 @@ jobs:
   test2:
     runs-on: 'node12'
     steps:
-      - runs: |
-          node console.log('hello world');
+      - run: |
+          echo "Testing123"
         
