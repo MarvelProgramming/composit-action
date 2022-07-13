@@ -20,7 +20,9 @@ jobs:
         shell: bash
   test2:
     runs-on: ubuntu-latest
-    using: 'node12'
+    - uses: actions/setup-node@v1
+        with:
+          node-version: 14
     steps:
       - run: |
           git commit --allow-empty -m "Testing"
