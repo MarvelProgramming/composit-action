@@ -13,6 +13,7 @@ jobs:
   test:
     runs-on: 'composite'
     steps:
+        uses: actions/checkout@v2
       - run: echo ${{ inputs.foo }}
         shell: bash
       - id: foo-bar
