@@ -7,11 +7,9 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    env:
-      PACKAGE_NAME: ${{ node -p "require('./package.json').name" }}
     - shell: bash
       run: |
-        echo "$PACKAGE_NAME"
+        echo '${{ node -e "require('./package.json').name)" }}'
         git config user.name 'Github Action'
         git config user.email '<>'
         git checkout -b release/${{ inputs.new_version }}
