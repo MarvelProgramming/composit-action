@@ -8,13 +8,17 @@ on:
         required: true
 
 jobs:
-  prepare_release:
+  git:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v3
         with:
           node-version: 14
+      - shell: bash
+        run: |
+          echo '{test}={123} >> $GITHUB_ENV'
+          echo ${{ $TEST }}
       - shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
