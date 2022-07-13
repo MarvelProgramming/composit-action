@@ -4,16 +4,18 @@ inputs:
   new_version:
     description: 'The version this extension will change to.'
     required: true
-runs:
-  using: 'composite'
-  steps:
-    - shell: bash
-      run: |
-        git config user.name 'Github Action'
-        git config user.email '<>'
-        git checkout -b release/${{ inputs.new_version }}
-        npm --no-git-tag-version version ${{ inputs.new_version }}
-        git add .
-        git commit -m "Preparing ${{ inputs.new_version }} Release"
-        git push origin release/${{ inputs.new_version }}
-        gh pr create --title "Prepare ${{ inputs.new_version }} Release" --body ''
+jobs:
+  prepare_release:
+    runs:
+      using: 'composite'
+      steps:
+        - shell: bash
+          run: |
+            git config user.name 'Github Action'
+            git config user.email '<>'
+            git checkout -b release/${{ inputs.new_version }}
+            npm --no-git-tag-version version ${{ inputs.new_version }}
+            git add .
+            git commit -m "Preparing ${{ inputs.new_version }} Release"
+            git push origin release/${{ inputs.new_version }}
+            gh pr create --title "Prepare ${{ inputs.new_version }} Release" --body ''
