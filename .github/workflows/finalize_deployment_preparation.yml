@@ -40,11 +40,13 @@ jobs:
           release_version=$(node -p "require('./package.json').version")
           git fetch -q
           if ! git checkout -f "release/${release_version}" ; then
-            echo "::warning::${{ env.release_candidate_warning_message }}"
+            echo "::warning::${{ env.release_prep_warning_message }}"
+            exit 1
           else
             git pull origin "release/${release_version}"
             if ! npm --no-git-tag-version version $release_version ; then
               echo "::warning::${{ env.release_candidate_warning_message }}"
+              exit 1
             else
               git add .
               git commit -m "Prepare ${release_version}"
