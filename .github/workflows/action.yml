@@ -14,7 +14,11 @@ on:
 
 env:
   preview_branch: 3.2_preview
+  main_branch: 3.2_main
+  next_branch: 3.2_next
+  release_prep_warning_message: 'At least one "prepared release" must exist before finalizing!'
   release_candidate_warning_message: 'At least one release candidate must exist before finalizing!'
+
 
 jobs:
   setup:
@@ -34,28 +38,47 @@ jobs:
           git config user.email '<>'
           release_version=$(node -p "require('./package.json').version")
           git fetch -q
-          if ! git checkout -f "release/${release_version}" ; then
-            echo "::warning::${{ "
-          if git pull origin "release/${release_version}" ; then
+          if [ ! git checkout -f "release/${release_version}" ] ; then
+            echo "::warning::${{ env.release_candidate_warning_message"
+          else
+            git pull origin "release/${release_version}"
             if ! npm --no-git-tag-version version $release_version ; then
               echo "::warning::${{ env.release_candidate_warning_message }}"
             else
               git add .
               git commit -m "Prepare ${release_version}"
               git push origin "release/${release_version}"
-              gh pr edit --title "Prepare ${release_version}"
+              gh pr edit --title "Release ${release_version}"
+              gh pr merge "release/${release_version}"
+              gh pr create --title "Release ${release_version}"
+              gh pr merge ${{ env.main_branch }}
+              git switch ${{ env.main_branch }}
+              git pull origin ${{ env.main_branch }}
+              gh pr create --title "Release ${release_version}"
+              gh pre merge ${{ env.next_branch }}
             fi
-          else
-            echo "::warning::${{ env.release_candidate_warning_message }}"
           fi
 
 ##COMMENTS##
 
 # Increases part of package.json version number by 1, based on the 'release_type' input
-# >> npm --no-git-tag-version version ${{ inputs.release_type }}
+# line[33] -> npm --no-git-tag-version version ${{ inputs.release_type }}
 
-# Gets the package.json version and stores it in the 'new_version' bash variable
-# >> release_version=$(node -p "require('./package.json').version")
+# Gets the package.json version for the preview branch and stores it in the 'new_version' bash variable to be
+# compared against later. Since we're never pushing changes to this branch's package.json (just updating a PR),
+# we get the correct release version for free
+# line[36] -> release_version=$(node -p "require('./package.json').version")
 
-# Runs the bash between 'then' and 'else' as long as the 'git pull' succeeds
-# >> if git pull origin "release/${release_version}" ; then
+# If we fail to checkout the release branch associated with "release_version", then no releases have been "prepped"
+# and we shoud stop here and issue a warning
+# line[38] -> if [ ! git checkout -f "release/${release_version}" ]
+
+# We pull down the contents of the release branch associated with "release_version", which should update our
+# package.json's version
+# line[41] -> git pull origin "release/${release_version}"
+
+# By default, the "npm version" command will throw an exception if you attempt to update the version to what
+# it's already set to (e.g. trying to set the version to "1.0.0" when it's already "1.0.0"). If an exception
+# is thrown, we assume that no release candidates have been created (which generally shouldn't be the case, since
+# we want to make sure things work before publishing changes), stop the workflow and issue a warning
+# line[42] -> if ! npm --no-git-tag-version version $release_version
