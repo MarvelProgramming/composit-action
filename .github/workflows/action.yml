@@ -1,35 +1,61 @@
-name: 'Extension Publisher'
+name: Finalize Deployment Preparation
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       release_type:
-        type: string
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+        default: patch
         required: true
+
+env:
+  preview_branch: 3.2_preview
+  release_candidate_warning_message: 'At least one release candidate must exist before finalizing!'
 
 jobs:
   setup:
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ env.preview_branch }}
       - uses: actions/setup-node@v3
         with:
           node-version: 14
-      - shell: bash
-        name: update_version
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm --no-git-tag-version version ${{ inputs.release_type }}
-          echo "updated_version=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
-      - shell: bash
-        name: commit
-        run: |
-          git config user.name 'Github Action'
+          git config user.name 'GitHub Action'
           git config user.email '<>'
-          git checkout -b release/${{ env.updated_version }}
-          git add .
-          git commit -m "Preparing ${{ env.updated_version }} Release"
-          git push origin release/${{ env.updated_version }}
-          gh pr create --title "Prepare ${{ env.updated_version }} Release" --body ''
-      
+          release_version=$(node -p "require('./package.json').version")
+          git fetch -q
+          if ! git checkout -f "release/${release_version}" ; then
+            echo "::warning::${{ "
+          if git pull origin "release/${release_version}" ; then
+            if ! npm --no-git-tag-version version $release_version ; then
+              echo "::warning::${{ env.release_candidate_warning_message }}"
+            else
+              git add .
+              git commit -m "Prepare ${release_version}"
+              git push origin "release/${release_version}"
+              gh pr edit --title "Prepare ${release_version}"
+            fi
+          else
+            echo "::warning::${{ env.release_candidate_warning_message }}"
+          fi
+
+##COMMENTS##
+
+# Increases part of package.json version number by 1, based on the 'release_type' input
+# >> npm --no-git-tag-version version ${{ inputs.release_type }}
+
+# Gets the package.json version and stores it in the 'new_version' bash variable
+# >> release_version=$(node -p "require('./package.json').version")
+
+# Runs the bash between 'then' and 'else' as long as the 'git pull' succeeds
+# >> if git pull origin "release/${release_version}" ; then
