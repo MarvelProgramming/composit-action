@@ -39,7 +39,7 @@ jobs:
           git config user.email '<>'
           release_version=$(node -p "require('./package.json').version")
           git fetch -q
-          if [ ! git checkout -f "release/${release_version}" ] ; then
+          if ! git checkout -f "release/${release_version}" ; then
             echo "::warning::${{ env.release_candidate_warning_message }}"
           else
             git pull origin "release/${release_version}"
