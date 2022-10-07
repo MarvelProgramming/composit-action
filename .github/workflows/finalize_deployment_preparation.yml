@@ -5,6 +5,7 @@ on:
     inputs:
       release_type:
         type: choice
+        description: The version segment to increment (e.g. 'patch' -> '1.0.0' to '1.0.1')
         options:
           - major
           - minor
@@ -16,8 +17,8 @@ env:
   preview_branch: 3.2_preview
   main_branch: 3.2_main
   next_branch: 3.2_next
+  node_version: 14
   merging_notification_title: 'Progress'
-
 
 jobs:
   setup:
@@ -30,25 +31,25 @@ jobs:
           ref: ${{ env.preview_branch }}
       - uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: ${{ env.node_version }}
       - name: Checking for prepared release with candidate
         id: validation
         run: |
-          echo ::notice::"Configuring"
+          echo ::notice title=${{ env.merging_notification_title }}::"Configuring"
           cd public
           npm --no-git-tag-version version ${{ inputs.release_type }}
           git config user.name 'GitHub Action'
           git config user.email '<>'
           release_version=$(node -p "require('./package.json').version")
           git fetch -q
-          echo ::notice::"Validating"
+          echo ::notice title=${{ env.merging_notification_title }}::"Validating"
           if ! git checkout -f "release/${release_version}" ; then
-            echo ::error::"At least one "prepared release" must exist before finalizing!"
+            echo ::error title=${{ env.merging_notification_title }}::"At least one "prepared release" must exist before finalizing!"
             exit 1
           else
             git pull origin "release/${release_version}"
             if ! npm --no-git-tag-version version $release_version ; then
-              echo ::error::"At least one release candidate must exist before finalizing!"
+              echo ::error title=${{ env.merging_notification_title }}::"At least one release candidate must exist before finalizing!"
               exit 1
             fi
           fi
@@ -78,6 +79,9 @@ jobs:
 
 ##COMMENTS##
 
+# Gives this workflow the permissions necessary for making PRs and merging.
+# >> GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 # Increases part of package.json version number by 1, based on the 'release_type' input
 # >> npm --no-git-tag-version version ${{ inputs.release_type }}
 
@@ -99,3 +103,15 @@ jobs:
 # is thrown, we assume that no release candidates have been created (which generally shouldn't be the case, since
 # we want to make sure things work before publishing changes), stop the workflow and issue an error message
 # >> if ! npm --no-git-tag-version version $release_version
+
+# Stores the value of the variable 'release_version' in the output of this step, which can be referenced by
+# using it's 'id'
+# >> echo ::set-output name=release_version::"${release_version}"
+
+# Grabs the output of the step with an id of 'validation' and stores in a variable called 'release_version'
+# >> release_version="${{ steps.validation.outputs.release_version }}"
+
+# Each instance of this command under the 'Merging release across branches' step is creating a pr.
+# The '--base' option allows us to choose which branch we'd like to merge into.
+# The '--fill' option automatically populates the body of the PR with commit messages
+# >> gh pr create --title "Release ${release_version}" --base "${{ env.main_branch }}" --fill
