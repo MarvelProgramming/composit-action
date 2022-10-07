@@ -33,6 +33,7 @@ jobs:
         with:
           node-version: 14
       - name: Checking for prepared release with candidate
+        id: validation
         run: |
           cd public
           npm --no-git-tag-version version ${{ inputs.release_type }}
@@ -53,8 +54,7 @@ jobs:
           echo ::set-output name=release_version::"${release_version}"
       - name: Merging release across branches
         run: |
-          release_version=${{ steps.vars.outputs.release_version }}
-          echo ${release_version}
+          release_version="${{ steps.validation.outputs.release_version }}"
           git add .
           git commit -m "Prepare ${release_version}"
           git push origin "release/${release_version}"
