@@ -142,6 +142,9 @@ jobs:
 # better to be explicit in case that changes in the future)
 # >> if: ${{ success() }}
 
+# A convenient way to send local tags to the remote
+# >> git push origin --tags
+
 # Each instance of this command under the 'Merging release across branches' step is creating a pr.
 # The '--base' option allows us to choose which branch we'd like to merge into.
 # The '--fill' option automatically populates the body of the PR with commit messages
