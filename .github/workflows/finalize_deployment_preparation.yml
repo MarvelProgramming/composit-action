@@ -53,13 +53,13 @@ jobs:
               git push origin "release/${release_version}"
               gh pr edit --title "Release ${release_version}"
               gh pr merge -m "release/${release_version}"
-              gh pr create --title "Release ${release_version}" ${{ env.main_branch }}
-              git switch ${{ env.main_branch }}
-              gh pr merge -m ${{ env.preview_branch }}
-              git pull origin ${{ env.main_branch }}
-              gh pr create --title "Release ${release_version}"  ${{ env.next_branch }}
-              git switch ${{ env.next_branch }}
-              gh pr merge -m ${{ env.next_branch }}
+              gh pr create --title "Release ${release_version}" "${{ env.main_branch }}"
+              git switch "${{ env.main_branch }}"
+              gh pr merge -m "${{ env.preview_branch }}"
+              git pull origin "${{ env.main_branch }}"
+              gh pr create --title "Release ${release_version}" "${{ env.next_branch }}"
+              git switch "${{ env.next_branch }}"
+              gh pr merge -m "${{ env.next_branch }}"
             fi
           fi
 
