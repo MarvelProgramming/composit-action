@@ -47,7 +47,6 @@ jobs:
           git commit -m "Prepare ${rc_version}"
           git push origin "release/${new_version}"
           echo ::notice::"Creating PR"
-          
           if ! gh pr create --title "Prepare ${rc_version}" --body '' -B "${{ env.preview_branch }}" ; then
             echo ::notice::"Existing PR found, editing instead"
             gh pr edit --title "Prepare ${rc_version}"

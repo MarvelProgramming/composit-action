@@ -54,6 +54,7 @@ jobs:
           fi
           echo ::set-output name=release_version::"${release_version}"
       - name: Merging release across branches
+        if: ${{ success() }}
         run: |
           release_version="${{ steps.validation.outputs.release_version }}"
           echo ::notice title=${{ env.notification_title }}::"Editing 'release/${release_version}' branch to '${{ env.preview_branch }}' branch PR title"
@@ -64,33 +65,38 @@ jobs:
           echo ::notice title=${{ env.notification_title }}::"Merging 'release/${release_version}' branch into '${{ env.preview_branch }}' branch"
           if ! gh pr merge -m "release/${release_version}" ; then
             echo ::error title=${{ env.notification_title }}::"Failed to merge 'release/${release_version}' branch into '${{ env.preview_branch }}'"
+            exit 1
           fi
           echo ::notice title=${{ env.notification_title }}::"Creating PR from '${{ env.preview_branch }}' branch into '${{ env.main_branch }}' branch"
           git switch "${{ env.preview_branch }}"
           git pull origin "${{ env.preview_branch }}"
           if ! gh pr create --title "Release ${release_version}" --base "${{ env.main_branch }}" --fill ; then
             echo ::error title=${{ env.notification_title }}::"Failed to create PR from '${{ env.preview_branch }}' branch into '${{ env.main_branch }}' branch"
+            exit 1
           fi
           echo ::notice title=${{ env.notification_title }}::"Merging '${{ env.preview_branch }}' branch into '${{ env.main_branch }}' branch"
           if ! gh pr merge -m "${{ env.preview_branch }}" ; then
             echo ::error title=${{ env.notification_title }}::"Failed to merge '${{ env.preview_branch }}' branch into '${{ env.main_branch }}' branch"
+            exit 1
           fi
           echo ::notice title=${{ env.notification_title }}::"Creating PR from '${{ env.main_branch }}' branch into '${{ env.next_branch }}' branch"
           git switch "${{ env.main_branch }}"
           git pull origin "${{ env.main_branch }}"
           if ! gh pr create --title "Release ${release_version}" --base "${{ env.next_branch }}" --fill ; then
             echo ::error title=${{ env.notification_title }}::"Failed to create PR from '${{ env.main_branch }}' branch to '${{ env.next_branch }}' branch"
+            exit 1
           fi
           echo ::notice title=${{ env.notification_title }}::"Merging '${{ env.main_branch }}' branch into '${{ env.next_branch }}' branch"
           if ! gh pr merge -m "${{ env.main_branch }}" ; then
             echo ::error title=${{ env.notification_title }}::"Failed to merge '${{ env.main_branch }}' branch into '${{ env.next_branch }}' branch"
+            exit 1
           fi
       - name: Cleaning up branches
+        if: ${{ success() }}
         run: |
           release_version="${{ steps.validation.outputs.release_version }}"
           git push origin --delete "release/${release_version}"
-          echo ::notice title=${{ env.notification_title }}::"Fast forwarding 'main' and 'preview' branches to ensure they aren't 'behind' on commits after merger"
-          git switch "${{ env.main_branch }}"
+          echo ::notice title=${{ env.notification_title }}::"Fast forwarding '${{ env.main_branch }}' and '${{ env.preview_branch }}' branches to ensure they aren't 'behind' on commits after merger"
           git pull origin "${{ env.next_branch }}"
           git push origin "${{ env.main_branch }}"
           git switch "${{ env.preview_branch }}"
@@ -130,6 +136,10 @@ jobs:
 
 # Grabs the output of the step with an id of 'validation' and stores in a variable called 'release_version'
 # >> release_version="${{ steps.validation.outputs.release_version }}"
+
+# Will only execute the step if the previous one ran successfully (this is the default behavior, but it's
+# better to be explicit in case that changes in the future)
+# >> if: ${{ success() }}
 
 # Each instance of this command under the 'Merging release across branches' step is creating a pr.
 # The '--base' option allows us to choose which branch we'd like to merge into.
