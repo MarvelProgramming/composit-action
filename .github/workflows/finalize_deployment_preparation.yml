@@ -23,6 +23,8 @@ env:
 jobs:
   setup:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -30,8 +32,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 14
-      - env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checking for prepared release with candidate
         run: |
           cd public
           npm --no-git-tag-version version ${{ inputs.release_type }}
@@ -47,22 +48,23 @@ jobs:
             if ! npm --no-git-tag-version version $release_version ; then
               echo "::warning::${{ env.release_candidate_warning_message }}"
               exit 1
-            else
-              git add .
-              git commit -m "Prepare ${release_version}"
-              git push origin "release/${release_version}"
-              gh pr edit --title "Release ${release_version}"
-              gh pr merge -m "release/${release_version}"
-              git switch "${{ env.preview_branch }}"
-              git pull origin "${{ env.preview_branch }}"
-              gh pr create --title "Release ${release_version}" --base "${{ env.main_branch }}" --fill
-              gh pr merge -m "${{ env.preview_branch }}"
-              git switch "${{ env.main_branch }}"
-              git pull origin "${{ env.main_branch }}"
-              gh pr create --title "Release ${release_version}" --base "${{ env.next_branch }}" --fill
-              gh pr merge -m "${{ env.main_branch }}"
             fi
           fi
+      - name: Merging release across branches
+        run: |
+          git add .
+          git commit -m "Prepare ${release_version}"
+          git push origin "release/${release_version}"
+          gh pr edit --title "Release ${release_version}"
+          gh pr merge -m "release/${release_version}"
+          git switch "${{ env.preview_branch }}"
+          git pull origin "${{ env.preview_branch }}"
+          gh pr create --title "Release ${release_version}" --base "${{ env.main_branch }}" --fill
+          gh pr merge -m "${{ env.preview_branch }}"
+          git switch "${{ env.main_branch }}"
+          git pull origin "${{ env.main_branch }}"
+          gh pr create --title "Release ${release_version}" --base "${{ env.next_branch }}" --fill
+          gh pr merge -m "${{ env.main_branch }}"
 
 ##COMMENTS##
 
