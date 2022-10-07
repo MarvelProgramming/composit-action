@@ -76,6 +76,10 @@ jobs:
           gh pr create --title "Release ${release_version}" --base "${{ env.next_branch }}" --fill
           echo ::notice title=${{ env.merging_notification_title }}::"Merging main into next"
           gh pr merge -m "${{ env.main_branch }}"
+      - name: Cleaning up release candidate branch
+        run: |
+          release_version="${{ steps.validation.outputs.release_version }}"
+          git push origin --delete "${release_version}"
 
 ##COMMENTS##
 
@@ -115,3 +119,6 @@ jobs:
 # The '--base' option allows us to choose which branch we'd like to merge into.
 # The '--fill' option automatically populates the body of the PR with commit messages
 # >> gh pr create --title "Release ${release_version}" --base "${{ env.main_branch }}" --fill
+
+# Deletes the release candidate branch (e.g. 'release/{x.y.z}') to avoid littering the branch list
+# >> git push origin --delete "${release_version}"
