@@ -56,8 +56,8 @@ jobs:
 # Checks out to 'release/x.x.x' if it exists and resets, otherwise it makes a new branch
 # >> git checkout -fB "release/${new_version}"
 
-# Attempts to pull if a 'release/x.x.x' branch already exists, otherwise echos a message
-# >> git pull origin "release/${new_version}" || echo "::Notice::No existing branch to pull from"
+# Attempts to pull 'release/x.x.x' branch, and issues a notice with a message upon failure
+# >> if ! git pull origin "release/${new_version}"
 
 # Increments the 'rc' part of the package.json version by 1
 # >> npm --no-git-tag-version --preid='rc' version prerelease
@@ -65,5 +65,6 @@ jobs:
 # Storing the updated package.json version in the 'rc_version' bash variable
 # >> rc_version=$(node -p "require('./package.json').version")
 
-# Attempts to create a new PR, otherwise edits the title of an existing one
-# >> gh pr create --title "Prepare ${rc_version}" --body '' -B "${{ env.preview_branch }}" || gh pr edit --title "Prepare ${rc_version}"
+# Attempts to create a new PR (which will fail if one already exists) and 
+# edits the title of an existing pr otherwise
+# >> if ! gh pr create --title "Prepare ${rc_version}" --body '' -B "${{ env.preview_branch }}"
