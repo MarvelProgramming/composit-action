@@ -79,7 +79,7 @@ jobs:
       - name: Cleaning up release candidate branch
         run: |
           release_version="${{ steps.validation.outputs.release_version }}"
-          git push origin --delete "${release_version}"
+          git push origin --delete "release/${release_version}"
 
 ##COMMENTS##
 
