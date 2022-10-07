@@ -55,7 +55,7 @@ jobs:
       - name: Merging release across branches
         run: |
           release_version="${{ steps.validation.outputs.release_version }}"
-          echo ::notice title=Progress::"Cleaning up release -> preview pr title"
+          echo ::notice title=Progress::"Cleaning up release to preview pr title"
           git add .
           git commit -m "Prepare ${release_version}"
           git push origin "release/${release_version}"
