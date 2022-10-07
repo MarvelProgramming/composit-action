@@ -28,7 +28,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
-          cache: 'npm'
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
