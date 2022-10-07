@@ -18,7 +18,7 @@ env:
   main_branch: 3.2_main
   next_branch: 3.2_next
   node_version: 14
-  merging_notification_title: 'Progress'
+  notification_title: 'Progress'
 
 jobs:
   setup:
@@ -35,51 +35,51 @@ jobs:
       - name: Checking for prepared release with candidate
         id: validation
         run: |
-          echo ::notice title=${{ env.merging_notification_title }}::"Configuring"
+          echo ::notice title=${{ env.notification_title }}::"Configuring"
           cd public
           npm --no-git-tag-version version ${{ inputs.release_type }}
           git config user.name 'GitHub Action'
           git config user.email '<>'
           release_version=$(node -p "require('./package.json').version")
           git fetch -q
-          echo ::notice title=${{ env.merging_notification_title }}::"Validating"
+          echo ::notice title=${{ env.notification_title }}::"Validating"
           if ! git checkout -f "release/${release_version}" ; then
-            echo ::error title=${{ env.merging_notification_title }}::"At least one "prepared release" must exist before finalizing!"
+            echo ::error title=${{ env.notification_title }}::"At least one "prepared release" must exist before finalizing!"
             exit 1
-          else
-            git pull origin "release/${release_version}"
-            if ! npm --no-git-tag-version version $release_version ; then
-              echo ::error title=${{ env.merging_notification_title }}::"At least one release candidate must exist before finalizing!"
-              exit 1
-            fi
+          fi
+          git pull origin "release/${release_version}"
+          if ! npm --no-git-tag-version version $release_version ; then
+            echo ::error title=${{ env.notification_title }}::"At least one release candidate must exist before finalizing!"
+            exit 1
           fi
           echo ::set-output name=release_version::"${release_version}"
       - name: Merging release across branches
         run: |
           release_version="${{ steps.validation.outputs.release_version }}"
-          echo ::notice title=${{ env.merging_notification_title }}::"Editing 'release' to 'preview' pr title"
+          echo ::notice title=${{ env.notification_title }}::"Editing 'release' to 'preview' pr title"
           git add .
           git commit -m "Prepare ${release_version}"
           git push origin "release/${release_version}"
           gh pr edit --title "Release ${release_version}"
-          echo ::notice title=${{ env.merging_notification_title }}::"Merging release into preview"
+          echo ::notice title=${{ env.notification_title }}::"Merging release into preview"
           gh pr merge -m "release/${release_version}"
-          echo ::notice title=${{ env.merging_notification_title }}::"Creating pr from preview into main"
+          echo ::notice title=${{ env.notification_title }}::"Creating pr from preview into main"
           git switch "${{ env.preview_branch }}"
           git pull origin "${{ env.preview_branch }}"
           gh pr create --title "Release ${release_version}" --base "${{ env.main_branch }}" --fill
-          echo ::notice title=${{ env.merging_notification_title }}::"Merging preview into main"
+          echo ::notice title=${{ env.notification_title }}::"Merging preview into main"
           gh pr merge -m "${{ env.preview_branch }}"
-          echo ::notice title=${{ env.merging_notification_title }}::"Creating pr from main into next"
+          echo ::notice title=${{ env.notification_title }}::"Creating pr from main into next"
           git switch "${{ env.main_branch }}"
           git pull origin "${{ env.main_branch }}"
           gh pr create --title "Release ${release_version}" --base "${{ env.next_branch }}" --fill
-          echo ::notice title=${{ env.merging_notification_title }}::"Merging main into next"
+          echo ::notice title=${{ env.notification_title }}::"Merging main into next"
           gh pr merge -m "${{ env.main_branch }}"
       - name: Cleaning up branches
         run: |
           release_version="${{ steps.validation.outputs.release_version }}"
           git push origin --delete "release/${release_version}"
+          echo ::notice title=${{ env.notification_title }}::"Fast forwarding 'main' and 'preview' branches to ensure they aren't 'behind' on commits after merger"
           git switch "${{ env.main_branch }}"
           git pull origin "${{ env.next_branch }}"
           git push origin "${{ env.main_branch }}"
