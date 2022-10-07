@@ -27,6 +27,7 @@ jobs:
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          echo ::notice::"Configuring"
           cd public
           npm --no-git-tag-version version ${{ inputs.release_type }}
           new_version=$(node -p "require('./package.json').version")
@@ -34,14 +35,16 @@ jobs:
           git config user.email '<>'
           git checkout -fB "release/${new_version}"
           if ! git pull origin "release/${new_version}" ; then
-            echo "::Notice::No existing branch to pull from"
+            echo "::notice::No existing branch to pull from. Using current"
           fi
           npm --no-git-tag-version --preid='rc' version prerelease
           rc_version=$(node -p "require('./package.json').version")
           git add .
           git commit -m "Prepare ${rc_version}"
           git push origin "release/${new_version}"
+          echo ::notice::"Creating PR"
           if ! gh pr create --title "Prepare ${rc_version}" --body '' -B "${{ env.preview_branch }}" ; then
+            echo ::notice::"Existing PR found, editing instead"
             gh pr edit --title "Prepare ${rc_version}"
           fi
 
