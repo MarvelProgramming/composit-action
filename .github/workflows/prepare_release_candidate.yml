@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_type:
+        description: The version segment to increment (e.g. 'patch' -> '1.0.0' to '1.0.1')
         type: choice
         options:
           - major
@@ -15,15 +16,19 @@ on:
 env:
   next_branch: 3.2_next
   preview_branch: 3.2_preview
+  node_version: 14
 
 jobs:
-  setup:
+  prepare:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
           ref: ${{ env.next_branch }}
       - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.node_version }}
+          cache: 'npm'
       - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -43,6 +48,7 @@ jobs:
           git commit -m "Prepare ${rc_version}"
           git push origin "release/${new_version}"
           echo ::notice::"Creating PR"
+          
           if ! gh pr create --title "Prepare ${rc_version}" --body '' -B "${{ env.preview_branch }}" ; then
             echo ::notice::"Existing PR found, editing instead"
             gh pr edit --title "Prepare ${rc_version}"
