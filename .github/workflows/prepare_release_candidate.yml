@@ -33,13 +33,17 @@ jobs:
           git config user.name 'GitHub Action'
           git config user.email '<>'
           git checkout -fB "release/${new_version}"
-          git pull origin "release/${new_version}" || echo "::Notice::No existing branch to pull from"
+          if ! git pull origin "release/${new_version}" ; then
+            echo "::Notice::No existing branch to pull from"
+          fi
           npm --no-git-tag-version --preid='rc' version prerelease
           rc_version=$(node -p "require('./package.json').version")
           git add .
           git commit -m "Prepare ${rc_version}"
           git push origin "release/${new_version}"
-          gh pr create --title "Prepare ${rc_version}" --body '' -B "${{ env.preview_branch }}" || gh pr edit --title "Prepare ${rc_version}"
+          if ! gh pr create --title "Prepare ${rc_version}" --body '' -B "${{ env.preview_branch }}" ; then
+            gh pr edit --title "Prepare ${rc_version}"
+          fi
 
 ##COMMENTS##
 
