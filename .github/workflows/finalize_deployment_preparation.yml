@@ -57,7 +57,7 @@ jobs:
       - name: Merging release across branches
         run: |
           release_version="${{ steps.validation.outputs.release_version }}"
-          echo ::notice title=${{ env.merging_notification_title }}::"Cleaning up release to preview pr title"
+          echo ::notice title=${{ env.merging_notification_title }}::"Editing 'release' to 'preview' pr title"
           git add .
           git commit -m "Prepare ${release_version}"
           git push origin "release/${release_version}"
@@ -76,11 +76,17 @@ jobs:
           gh pr create --title "Release ${release_version}" --base "${{ env.next_branch }}" --fill
           echo ::notice title=${{ env.merging_notification_title }}::"Merging main into next"
           gh pr merge -m "${{ env.main_branch }}"
-      - name: Cleaning up release candidate branch
+      - name: Cleaning up branches
         run: |
           release_version="${{ steps.validation.outputs.release_version }}"
           git push origin --delete "release/${release_version}"
-
+          git switch "${{ env.main_branch }}"
+          git pull origin "${{ env.next_branch }}"
+          git push origin "${{ env.main_branch }}"
+          git switch "${{ env.preview_branch }}"
+          git pull origin "${{ env.next_branch }}"
+          git push origin "${{ env.preview_branch }}"
+          
 ##COMMENTS##
 
 # Gives this workflow the permissions necessary for making PRs and merging.
