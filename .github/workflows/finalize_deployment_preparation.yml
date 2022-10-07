@@ -33,6 +33,7 @@ jobs:
         with:
           node-version: 14
       - name: Checking for prepared release with candidate
+        id: validation
         run: |
           cd public
           npm --no-git-tag-version version ${{ inputs.release_type }}
@@ -50,20 +51,28 @@ jobs:
               exit 1
             fi
           fi
+          echo ::set-output name=release_version::"${release_version}"
       - name: Merging release across branches
         run: |
+          release_version="${{ steps.validation.outputs.release_version }}"
+          echo ::title=Progress::"Cleaning up release -> preview pr title"
           git add .
           git commit -m "Prepare ${release_version}"
           git push origin "release/${release_version}"
           gh pr edit --title "Release ${release_version}"
+          echo ::title=Progress::"Merging release into preview"
           gh pr merge -m "release/${release_version}"
+          echo ::title=Progress::"Creating pr from preview into main"
           git switch "${{ env.preview_branch }}"
           git pull origin "${{ env.preview_branch }}"
           gh pr create --title "Release ${release_version}" --base "${{ env.main_branch }}" --fill
+          echo ::title=Progress::"Merging preview into main"
           gh pr merge -m "${{ env.preview_branch }}"
+          echo ::title=Progress::"Creating pr from main into next"
           git switch "${{ env.main_branch }}"
           git pull origin "${{ env.main_branch }}"
           gh pr create --title "Release ${release_version}" --base "${{ env.next_branch }}" --fill
+          echo ::title=Progress::"Merging main into next"
           gh pr merge -m "${{ env.main_branch }}"
 
 ##COMMENTS##
