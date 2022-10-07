@@ -16,8 +16,6 @@ env:
   preview_branch: 3.2_preview
   main_branch: 3.2_main
   next_branch: 3.2_next
-  release_prep_warning_message: 'At least one "prepared release" must exist before finalizing!'
-  release_candidate_warning_message: 'At least one release candidate must exist before finalizing!'
   merging_notification_title: 'Progress'
 
 
@@ -36,19 +34,21 @@ jobs:
       - name: Checking for prepared release with candidate
         id: validation
         run: |
+          echo ::notice::"Configuring"
           cd public
           npm --no-git-tag-version version ${{ inputs.release_type }}
           git config user.name 'GitHub Action'
           git config user.email '<>'
           release_version=$(node -p "require('./package.json').version")
           git fetch -q
+          echo ::notice::"Validating"
           if ! git checkout -f "release/${release_version}" ; then
-            echo "::error::${{ env.release_prep_warning_message }}"
+            echo ::error::"At least one "prepared release" must exist before finalizing!"
             exit 1
           else
             git pull origin "release/${release_version}"
             if ! npm --no-git-tag-version version $release_version ; then
-              echo "::error::${{ env.release_candidate_warning_message }}"
+              echo ::error::"At least one release candidate must exist before finalizing!"
               exit 1
             fi
           fi
