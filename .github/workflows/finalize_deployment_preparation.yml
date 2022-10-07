@@ -60,7 +60,7 @@ jobs:
               git switch "${{ env.main_branch }}"
               git pull origin "${{ env.main_branch }}"
               gh pr create --title "Release ${release_version}" --base "${{ env.next_branch }}" --fill
-              gh pr merge -m "${{ env.next_branch }}"
+              gh pr merge -m "${{ env.main_branch }}"
             fi
           fi
 
