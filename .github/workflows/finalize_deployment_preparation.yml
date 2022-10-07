@@ -43,12 +43,12 @@ jobs:
           release_version=$(node -p "require('./package.json').version")
           git fetch -q
           if ! git checkout -f "release/${release_version}" ; then
-            echo "::warning::${{ env.release_prep_warning_message }}"
+            echo "::error::${{ env.release_prep_warning_message }}"
             exit 1
           else
             git pull origin "release/${release_version}"
             if ! npm --no-git-tag-version version $release_version ; then
-              echo "::warning::${{ env.release_candidate_warning_message }}"
+              echo "::error::${{ env.release_candidate_warning_message }}"
               exit 1
             fi
           fi
@@ -79,23 +79,23 @@ jobs:
 ##COMMENTS##
 
 # Increases part of package.json version number by 1, based on the 'release_type' input
-# line[40] -> npm --no-git-tag-version version ${{ inputs.release_type }}
+# npm --no-git-tag-version version ${{ inputs.release_type }}
 
 # Gets the package.json version for the preview branch and stores it in the 'new_version' bash variable to be
 # compared against later. Since we're never pushing changes to this branch's package.json (just updating a PR),
 # we get the correct release version for free
-# line[43] -> release_version=$(node -p "require('./package.json').version")
+# release_version=$(node -p "require('./package.json').version")
 
 # If we fail to checkout the release branch associated with "release_version", then no releases have been "prepped"
 # and we shoud stop here and issue a warning
-# line[45] -> if ! git checkout -f "release/${release_version}"
+# if ! git checkout -f "release/${release_version}"
 
 # We pull down the contents of the release branch associated with "release_version", which should update our
 # package.json's version
-# line[49] -> git pull origin "release/${release_version}"
+# git pull origin "release/${release_version}"
 
 # By default, the "npm version" command will throw an exception if you attempt to update the version to what
 # it's already set to (e.g. trying to set the version to "1.0.0" when it's already "1.0.0"). If an exception
 # is thrown, we assume that no release candidates have been created (which generally shouldn't be the case, since
 # we want to make sure things work before publishing changes), stop the workflow and issue a warning
-# line[50] -> if ! npm --no-git-tag-version version $release_version
+# if ! npm --no-git-tag-version version $release_version
