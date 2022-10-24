@@ -42,6 +42,8 @@ jobs:
           git checkout -fB "release/${new_version}"
           if ! git pull origin "release/${new_version}" ; then
             echo "::notice title=${{ env.notification_title }}::No existing branch to pull from. Using current"
+            echo "${original_version}"
+            echo "${new_version}"
             npm --no-git-tag-version version ${original_version}
           fi
           npm --no-git-tag-version version --preid='rc' "pre${{ inputs.release_type }}"
