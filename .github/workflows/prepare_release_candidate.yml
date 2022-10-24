@@ -46,7 +46,9 @@ jobs:
             echo "${new_version}"
             npm --no-git-tag-version version ${original_version}
           fi
+          echo "Reset version"
           npm --no-git-tag-version version --preid='rc' "pre${{ inputs.release_type }}"
+          echo "Incremented RC version"
           rc_version=$(node -p "require('./package.json').version")
           git add .
           git commit -m "Prepare ${rc_version}"
