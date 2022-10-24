@@ -16,7 +16,7 @@ on:
 env:
   next_branch: 3.2_next
   preview_branch: 3.2_preview
-  notification_title: "Progress"
+  notification_title: 'Progress'
   node_version: 14
 
 jobs:
@@ -34,6 +34,7 @@ jobs:
         run: |
           echo ::notice title=${{ env.notification_title }}::"Checking for existing release candidate"
           cd public
+          original_version=$(node -p "require('./package.json').version")
           npm --no-git-tag-version version ${{ inputs.release_type }}
           new_version=$(node -p "require('./package.json').version")
           git config user.name 'GitHub Action'
@@ -41,8 +42,9 @@ jobs:
           git checkout -fB "release/${new_version}"
           if ! git pull origin "release/${new_version}" ; then
             echo "::notice title=${{ env.notification_title }}::No existing branch to pull from. Using current"
+            npm --no-git-tag-version version ${original_version}
           fi
-          npm --no-git-tag-version --preid='rc' version prerelease
+          npm --no-git-tag-version version "pre${{ inputs.release_type }}"
           rc_version=$(node -p "require('./package.json').version")
           git add .
           git commit -m "Prepare ${rc_version}"
@@ -73,6 +75,6 @@ jobs:
 # Storing the updated package.json version in the 'rc_version' bash variable
 # >> rc_version=$(node -p "require('./package.json').version")
 
-# Attempts to create a new PR (which will fail if one already exists) and 
+# Attempts to create a new PR (which will fail if one already exists) and
 # edits the title of an existing pr otherwise
 # >> if ! gh pr create --title "Prepare ${rc_version}" --body '' -B "${{ env.preview_branch }}"
