@@ -45,11 +45,10 @@ jobs:
             echo "current: $(node -p "require('./package.json').version")"
             echo "original: ${original_version}"
             echo "new: ${new_version}"
-            npm --no-git-tag-version version ${original_version}
+          else
+            echo "::notice title=${{ env.notification_title }}::Pulling from existing branch."
           fi
-          echo "Reset version"
           npm --no-git-tag-version version --preid='rc' "pre${{ inputs.release_type }}"
-          echo "Incremented RC version"
           rc_version=$(node -p "require('./package.json').version")
           git add .
           git commit -m "Prepare ${rc_version}"
