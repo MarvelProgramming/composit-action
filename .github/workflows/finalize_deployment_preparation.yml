@@ -1,23 +1,13 @@
 name: Finalize Deployment Preparation
 
-on:
-  workflow_dispatch:
-    inputs:
-      release_type:
-        type: choice
-        description: The version segment that was used to prepare a new release (i.e. the one chosen for the prepare_release_candidate workflow)
-        options:
-          - major
-          - minor
-          - patch
-        default: patch
-        required: true
+on: workflow_dispatch
 
 env:
   preview_branch: 3.2_preview
   main_branch: 3.2_main
   next_branch: 3.2_next
   node_version: 14
+  last_release_type_field_name: 'deployment.workflow.last.release_type'
   notification_title: 'Progress'
 
 jobs:
@@ -35,9 +25,13 @@ jobs:
       - name: Checking for prepared release with candidate
         id: validation
         run: |
+          if ! $(npm pkg get ${{ env.last_release_type_field_name }}) ; then
+            echo ::notice title=${{ env.notification_title }}::"No release candidate exists! You must run the prepare_release_candidate at least once before finalizing!"
+            exit 1
+          fi
           echo ::notice title=${{ env.notification_title }}::"Checking for existing prep release and candidate"
           cd public
-          npm --no-git-tag-version version ${{ inputs.release_type }}
+          npm --no-git-tag-version version "$(npm pkg get ${{ env.last_release_type_field_name }})"
           git config user.name 'GitHub Action'
           git config user.email '<>'
           release_version="$(npm pkg get version)"
@@ -62,9 +56,13 @@ jobs:
           git add .
           git commit -m "Prepare ${release_version}"
           git push origin "release/${release_version}"
-          if ! gh pr edit --title "Release ${release_version}" && ! gh pr create --title "Release ${release_version}" --base "${{ env.preview_branch }}" --fill ; then
-            echo ::error title=${{ env.notification_title }}::"Failed to create/edit PR from 'release/${release_version}' branch into '${{ env.preview_branch }}' branch"
-            exit 1 
+          if ! gh pr edit --title "Release ${release_version}" ; then
+            echo ::error title=${{ env.notification_title }}::"Failed to edit PR from 'release/${release_version}' branch into '${{ env.preview_branch }}' branch. Attempting to create one instead.."
+            
+            if ! gh pr create --title "Release ${release_version}" --base "${{ env.preview_branch }}" --fill ; then
+              echo ::error title=${{ env.notification_title }}::"Failed to create PR from 'release/${release_version}' branch into '${{ env.preview_branch }}' branch"
+              exit 1
+            fi
           fi
           echo ::notice title=${{ env.notification_title }}::"Merging 'release/${release_version}' branch into '${{ env.preview_branch }}' branch"
           if ! gh pr merge -m "release/${release_version}" ; then
@@ -95,9 +93,10 @@ jobs:
             echo ::error title=${{ env.notification_title }}::"Failed to merge '${{ env.main_branch }}' branch into '${{ env.next_branch }}' branch"
             exit 1
           fi
-      - name: Cleaning up branches
+      - name: Cleaning up
         if: ${{ success() }}
         run: |
+          npm pkg delete "${{ env.last_release_type_field_name }}"
           release_version="${{ steps.validation.outputs.release_version }}"
           git push origin --delete "release/${release_version}"
           echo ::notice title=${{ env.notification_title }}::"Fast forwarding '${{ env.main_branch }}' and '${{ env.preview_branch }}' branches to ensure they aren't 'behind' on commits after merger"
@@ -112,8 +111,9 @@ jobs:
 # Gives this workflow the permissions necessary for making PRs and merging.
 # >> GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-# Increases part of package.json version number by 1, based on the 'release_type' input
-# >> npm --no-git-tag-version version ${{ inputs.release_type }}
+# Increases part of package.json version number by 1, based on the version part defined in the custom npm field
+# created by the prepare_release_candidate workflow
+# >> npm --no-git-tag-version version "$(npm pkg get ${{ env.last_release_type_field_name }})"
 
 # If we fail to checkout the release branch associated with "release_version", then no releases have been "prepped"
 # and we shoud stop here and issue an error message
@@ -147,6 +147,10 @@ jobs:
 # The '--base' option allows us to choose which branch we'd like to merge into.
 # The '--fill' option automatically populates the body of the PR with commit messages
 # >> gh pr create --title "Release ${release_version}" --base "${{ env.main_branch }}" --fill
+
+# We delete this custom npm field to prevent finalize_deployment_preparation from being ran again without
+# prepare_release_candidate being executed at least once 
+# >> npm pkg delete "${{ env.last_release_type_field_name }}"
 
 # Deletes the release candidate branch (e.g. 'release/{x.y.z}') to avoid littering the branch list
 # >> git push origin --delete "${release_version}"
