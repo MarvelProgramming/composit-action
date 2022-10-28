@@ -63,7 +63,6 @@ jobs:
               echo ::error title=${{ env.notification_title }}::"Failed to create PR from 'release/${release_version}' branch into '${{ env.preview_branch }}' branch"
               exit 1
           fi
-          exit 1
           echo ::notice title=${{ env.notification_title }}::"Merging 'release/${release_version}' branch into '${{ env.preview_branch }}' branch"
           if ! gh pr merge -m "release/${release_version}" ; then
             echo ::error title=${{ env.notification_title }}::"Failed to merge 'release/${release_version}' branch into '${{ env.preview_branch }}'"
