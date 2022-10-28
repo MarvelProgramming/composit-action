@@ -6,7 +6,7 @@ env:
   preview_branch: 3.2_preview
   main_branch: 3.2_main
   next_branch: 3.2_next
-  node_version: 15
+  node_version: 17
   last_release_type_field_name: 'deployment.workflow.last.release_type'
   notification_title: 'Progress'
 
