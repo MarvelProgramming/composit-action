@@ -51,19 +51,19 @@ jobs:
             echo ::error title=${{ env.notification_title }}::"At least one release candidate must exist before finalizing!"
             exit 1
           fi
-          echo ::set-output name=release_version::"${release_version}"
+          echo "release_version=${release_version}" >> $GITHUB_ENV
       - name: Merging release across branches
         if: ${{ success() }}
         run: |
-          release_version="${{ steps.validation.outputs.release_version }}"
+          release_version="${{ env.release_version }}"
           echo ::notice title=${{ env.notification_title }}::"Editing 'release/${release_version}' branch to '${{ env.preview_branch }}' branch PR title"
           git tag "${release_version}"
           git push origin --tags
           git add .
           git commit -m "Prepare ${release_version}"
           git push origin "release/${release_version}"
-          if ! gh pr create --title "Release ${release_version}" --base "${{ env.preview_branch }}" --fill ; then
-            echo ::error title=${{ env.notification_title }}::"Failed to create PR from 'release/${release_version}' branch into '${{ env.preview_branch }}' branch"
+          if ! gh pr edit --title "Release ${release_version}" && ! gh pr create --title "Release ${release_version}" --base "${{ env.preview_branch }}" --fill ; then
+            echo ::error title=${{ env.notification_title }}::"Failed to create/edit PR from 'release/${release_version}' branch into '${{ env.preview_branch }}' branch"
             exit 1 
           fi
           echo ::notice title=${{ env.notification_title }}::"Merging 'release/${release_version}' branch into '${{ env.preview_branch }}' branch"
