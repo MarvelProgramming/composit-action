@@ -36,6 +36,7 @@ jobs:
           echo ::notice title=${{ env.notification_title }}::"Checking for existing release candidate"
           cd public
           npm --no-git-tag-version version ${{ inputs.release_type }}
+          npm -v
           echo "here"
           echo "$(npm pkg get version)"
           new_version=$(npm pkg get version)
