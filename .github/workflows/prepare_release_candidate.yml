@@ -18,7 +18,7 @@ env:
   preview_branch: 3.2_preview
   notification_title: 'Progress'
   last_release_type_field_name: 'deployment.workflow.last.release_type'
-  node_version: 15
+  node_version: 17
 
 jobs:
   prepare:
