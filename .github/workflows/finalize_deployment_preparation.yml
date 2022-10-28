@@ -56,9 +56,9 @@ jobs:
           npm pkg delete "deployment_workflow"
           cd ..
           git tag "${release_version}"
-          git push origin --tags
           git add .
           git commit -m "Prepare ${release_version}"
+          git push origin --tags
           git push origin "release/${release_version}"
           if ! gh pr create --title "Release ${release_version}" --base "${{ env.preview_branch }}" --body "" ; then
               echo ::error title=${{ env.notification_title }}::"Failed to create PR from 'release/${release_version}' branch into '${{ env.preview_branch }}' branch"
