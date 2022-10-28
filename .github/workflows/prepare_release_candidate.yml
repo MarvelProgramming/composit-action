@@ -34,23 +34,19 @@ jobs:
         run: |
           echo ::notice title=${{ env.notification_title }}::"Checking for existing release candidate"
           cd public
-          original_version=$(node -p "require('./package.json').version")
           npm --no-git-tag-version version ${{ inputs.release_type }}
-          new_version=$(node -p "require('./package.json').version")
+          new_version="$(npm pkg get version)"
           git config user.name 'GitHub Action'
           git config user.email '<>'
           git checkout -fB "release/${new_version}"
           if ! git pull origin "release/${new_version}" ; then
             echo "::notice title=${{ env.notification_title }}::No existing branch to pull from. Using current"
-            echo "current: $(node -p "require('./package.json').version")"
-            echo "original: ${original_version}"
-            echo "new: ${new_version}"
             npm --no-git-tag-version version --preid='rc' "pre${{ inputs.release_type }}"
           else
             echo "::notice title=${{ env.notification_title }}::Pulling from existing branch."
             npm --no-git-tag-version version --preid='rc' prerelease
           fi
-          rc_version=$(node -p "require('./package.json').version")
+          rc_version="$(npm pkg get version)"
           git add .
           git commit -m "Prepare ${rc_version}"
           git push origin "release/${new_version}"
@@ -66,7 +62,7 @@ jobs:
 # >> npm --no-git-tag-version version ${{ inputs.release_type }}
 
 # Gets the package.json version and stores it in the 'new_version' bash variable
-# >> new_version=$(node -p "require('./package.json').version")
+# >> new_version="$(npm pkg get version)"
 
 # Checks out to 'release/x.x.x' if it exists and resets, otherwise it makes a new branch
 # >> git checkout -fB "release/${new_version}"
@@ -77,8 +73,8 @@ jobs:
 # Increments the 'rc' part of the package.json version by 1
 # >> npm --no-git-tag-version --preid='rc' version prerelease
 
-# Storing the updated package.json version in the 'rc_version' bash variable
-# >> rc_version=$(node -p "require('./package.json').version")
+# Storing the updated package.json version with the 'rc' prefix in the 'rc_version' bash variable
+# >> rc_version="$(npm pkg get version)"
 
 # Attempts to create a new PR (which will fail if one already exists) and
 # edits the title of an existing pr otherwise
