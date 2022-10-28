@@ -7,7 +7,7 @@ env:
   main_branch: 3.2_main
   next_branch: 3.2_next
   node_version: 17
-  last_release_type_field_name: 'deployment.workflow.last.release_type'
+  last_release_type_field_name: 'deployment_workflow_last_release_type'
   notification_title: 'Progress'
 
 jobs:
