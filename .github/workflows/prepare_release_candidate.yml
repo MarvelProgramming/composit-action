@@ -43,7 +43,7 @@ jobs:
             echo ::notice title=${{ env.notification_title }}::"release_type set to ${{ inputs.release_type }}"
             npm --no-git-tag-version version ${{ inputs.release_type }}
           fi
-          new_version=$(npm pkg get version)
+          new_version=${"$(npm pkg get version)":1:-1}
           git config user.name 'GitHub Action'
           git config user.email '<>'
           git checkout -fB "release/${new_version}"
@@ -54,7 +54,7 @@ jobs:
             echo "::notice title=${{ env.notification_title }}::Pulling from existing branch."
             npm --no-git-tag-version version --preid='rc' prerelease
           fi
-          rc_version=$(npm pkg get version)
+          rc_version=${"$(npm pkg get version)":1:-1}
           npm pkg set "${{ env.last_release_type_field_name }}=${{ inputs.release_type }}"
           git add .
           git commit -m "Prepare ${rc_version}"
@@ -70,8 +70,9 @@ jobs:
 # Increases part of package.json version number by 1, based on the 'release_type' input
 # >> npm --no-git-tag-version version ${{ inputs.release_type }}
 
-# Gets the package.json version and stores it in the 'new_version' bash variable
-# >> new_version="$(npm pkg get version)"
+# Gets the package.json version, removes the quotes from the sting using bash's parameter expansion,
+# and stores it in the 'new_version' bash variable
+# >> new_version=${"$(npm pkg get version)":1:-1}
 
 # Checks out to 'release/x.x.x' if it exists and resets, otherwise it makes a new branch
 # >> git checkout -fB "release/${new_version}"
@@ -82,7 +83,8 @@ jobs:
 # Increments the 'rc' part of the package.json version by 1
 # >> npm --no-git-tag-version --preid='rc' version prerelease
 
-# Storing the updated package.json version with the 'rc' prefix in the 'rc_version' bash variable
+# Gets the package.json version, removes the quotes from the sting using bash's parameter expansion,
+# and stores it in the 'rc_version' bash variable
 # >> rc_version="$(npm pkg get version)"
 
 # Attempts to create a new PR (which will fail if one already exists) and
