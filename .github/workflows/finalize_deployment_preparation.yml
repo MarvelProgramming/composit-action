@@ -51,11 +51,11 @@ jobs:
             echo ::error title=${{ env.notification_title }}::"At least one release candidate must exist before finalizing!"
             exit 1
           fi
-          echo ::set-output name=release_version::"${release_version}"
+          echo "release_version=${release_version}" >> $GITHUB_ENV
       - name: Merging release across branches
         if: ${{ success() }}
         run: |
-          release_version="${{ steps.validation.outputs.release_version }}"
+          release_version="${{ env.release_version }}"
           echo ::notice title=${{ env.notification_title }}::"Editing 'release/${release_version}' branch to '${{ env.preview_branch }}' branch PR title"
           git tag "${release_version}"
           git push origin --tags
