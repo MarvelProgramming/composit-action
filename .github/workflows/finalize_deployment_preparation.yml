@@ -25,12 +25,12 @@ jobs:
       - name: Checking for prepared release with candidate
         id: validation
         run: |
+          echo ::notice title=${{ env.notification_title }}::"Checking for existing prep release and candidate"
+          cd public
           if ! $(npm pkg get ${{ env.last_release_type_field_name }}) ; then
             echo ::notice title=${{ env.notification_title }}::"No release candidate exists! You must run the prepare_release_candidate at least once before finalizing!"
             exit 1
           fi
-          echo ::notice title=${{ env.notification_title }}::"Checking for existing prep release and candidate"
-          cd public
           npm --no-git-tag-version version "$(npm pkg get ${{ env.last_release_type_field_name }})"
           git config user.name 'GitHub Action'
           git config user.email '<>'
