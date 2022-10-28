@@ -45,7 +45,7 @@ jobs:
             echo "current: $(node -p "require('./package.json').version")"
             echo "original: ${original_version}"
             echo "new: ${new_version}"
-            npm --no-git-tag-version version --preid='rc' "pre${{ input.release_type }}"
+            npm --no-git-tag-version version --preid='rc' "pre${{ inputs.release_type }}"
           else
             echo "::notice title=${{ env.notification_title }}::Pulling from existing branch."
             npm --no-git-tag-version version --preid='rc' prerelease
