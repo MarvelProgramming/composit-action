@@ -17,9 +17,8 @@ env:
   next_branch: 3.2_next
   preview_branch: 3.2_preview
   notification_title: 'Progress'
-  custom_npm_field: 'deployment_workflow'
-  last_release_type_field_name: "${{ env.custom_npm_field }}.last_release_type"
-  last_candidate_version: "${{ env.custom_npm_field }}.last_candidate_version"
+  last_release_type_field_name: "deployment_workflow.last_release_type"
+  last_candidate_version: "deployment_workflow.last_candidate_version"
   node_version: 17
 
 jobs:
