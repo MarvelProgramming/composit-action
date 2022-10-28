@@ -59,7 +59,6 @@ jobs:
           git add .
           git commit -m "Prepare ${release_version}"
           git push origin "release/${release_version}"
-          exit 1
           if ! gh pr edit --title "Release ${release_version}" ; then
             echo ::error title=${{ env.notification_title }}::"Failed to edit PR from 'release/${release_version}' branch into '${{ env.preview_branch }}' branch. Attempting to create one instead.."
             
@@ -68,6 +67,7 @@ jobs:
               exit 1
             fi
           fi
+          exit 1
           echo ::notice title=${{ env.notification_title }}::"Merging 'release/${release_version}' branch into '${{ env.preview_branch }}' branch"
           if ! gh pr merge -m "release/${release_version}" ; then
             echo ::error title=${{ env.notification_title }}::"Failed to merge 'release/${release_version}' branch into '${{ env.preview_branch }}'"
