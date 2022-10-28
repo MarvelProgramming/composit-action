@@ -17,6 +17,7 @@ env:
   next_branch: 3.2_next
   preview_branch: 3.2_preview
   notification_title: 'Progress'
+  last_release_type_field_name: 'deployment.workflow.last.release_type'
   node_version: 14
 
 jobs:
@@ -47,6 +48,7 @@ jobs:
             npm --no-git-tag-version version --preid='rc' prerelease
           fi
           rc_version="$(npm pkg get version)"
+          npm pkg set "${{ env.last_release_type_field_name }}=${{ inputs.release_type }}"
           git add .
           git commit -m "Prepare ${rc_version}"
           git push origin "release/${new_version}"
