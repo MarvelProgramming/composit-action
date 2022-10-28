@@ -28,13 +28,13 @@ jobs:
         run: |
           echo ::notice title=${{ env.notification_title }}::"Checking for existing prep release and candidate"
           cd public
-          if [ -z "$(npm pkg get ${{ env.last_release_type_field_name }})" ] ; then
+          if [ -z "$(npm pkg get ${{ env.last_candidate_version }})" ] ; then
             echo ::notice title=${{ env.notification_title }}::"No release candidate exists! You must run the prepare_release_candidate at least once before finalizing!"
             exit 1
           fi
           git config user.name 'GitHub Action'
           git config user.email '<>'
-          release_version="$(echo $(npm pkg get ${{ env.last_release_type_field_name }}) | tr -d '"')"
+          release_version="$(echo $(npm pkg get ${{ env.last_candidate_version }}) | tr -d '"')"
           git fetch -q
           if ! git checkout -f "release/${release_version}" ; then
             echo ::error title=${{ env.notification_title }}::"At least one "prepared release" must exist before finalizing!"
