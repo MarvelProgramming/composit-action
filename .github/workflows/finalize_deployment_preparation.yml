@@ -45,6 +45,7 @@ jobs:
             echo ::error title=${{ env.notification_title }}::"At least one release candidate must exist before finalizing!"
             exit 1
           fi
+          npm --no-git-version version "${release_version}"
           echo "release_version=$(echo "${release_version}")" >> $GITHUB_OUTPUT
       - name: Merging release across branches
         if: ${{ success() }}
