@@ -31,7 +31,7 @@ jobs:
             echo ::notice title=${{ env.notification_title }}::"No release candidate exists! You must run the prepare_release_candidate at least once before finalizing!"
             exit 1
           fi
-          npm --no-git-tag-version version "$(echo $(npm pkg get env.last_release_type_field_name }} | tr -d '"') | tr -d '"')"
+          npm --no-git-tag-version version "$(echo $(npm pkg get ${{ env.last_release_type_field_name }}) | tr -d '"')"
           git config user.name 'GitHub Action'
           git config user.email '<>'
           release_version="$(echo $(npm pkg get version) | tr -d '"')"
