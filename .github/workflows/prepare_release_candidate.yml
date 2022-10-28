@@ -55,7 +55,7 @@ jobs:
             echo "::notice title=${{ env.notification_title }}::Pulling from existing branch."
             npm --no-git-tag-version version --preid='rc' prerelease
           fi
-          rc_version=${"$(npm pkg get version)":1:-1}
+          rc_version="$(echo $(npm pkg get version) | tr -d '"')"
           npm pkg set "${{ env.last_release_type_field_name }}=${{ inputs.release_type }}"
           git add .
           git commit -m "Prepare ${rc_version}"
