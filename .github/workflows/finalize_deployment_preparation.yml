@@ -59,7 +59,7 @@ jobs:
           git add .
           git commit -m "Prepare ${release_version}"
           git push origin "release/${release_version}"
-          if ! gh pr create --title "Release ${release_version}" --base "${{ env.preview_branch }}" --fill ; then
+          if ! gh pr create --title "Release ${release_version}" --base "${{ env.preview_branch }}" --body "" ; then
               echo ::error title=${{ env.notification_title }}::"Failed to create PR from 'release/${release_version}' branch into '${{ env.preview_branch }}' branch"
               exit 1
           fi
@@ -71,7 +71,7 @@ jobs:
           echo ::notice title=${{ env.notification_title }}::"Creating PR from '${{ env.preview_branch }}' branch into '${{ env.main_branch }}' branch"
           git switch "${{ env.preview_branch }}"
           git pull origin "${{ env.preview_branch }}"
-          if ! gh pr create --title "Release ${release_version}" --base "${{ env.main_branch }}" --fill ; then
+          if ! gh pr create --title "Release ${release_version}" --base "${{ env.main_branch }}" --body "" ; then
             echo ::error title=${{ env.notification_title }}::"Failed to create PR from '${{ env.preview_branch }}' branch into '${{ env.main_branch }}' branch"
             exit 1
           fi
@@ -83,7 +83,7 @@ jobs:
           echo ::notice title=${{ env.notification_title }}::"Creating PR from '${{ env.main_branch }}' branch into '${{ env.next_branch }}' branch"
           git switch "${{ env.main_branch }}"
           git pull origin "${{ env.main_branch }}"
-          if ! gh pr create --title "Release ${release_version}" --base "${{ env.next_branch }}" --fill ; then
+          if ! gh pr create --title "Release ${release_version}" --base "${{ env.next_branch }}" --body "" ; then
             echo ::error title=${{ env.notification_title }}::"Failed to create PR from '${{ env.main_branch }}' branch to '${{ env.next_branch }}' branch"
             exit 1
           fi
