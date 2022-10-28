@@ -54,6 +54,7 @@ jobs:
           git tag "${release_version}"
           git push origin --tags
           echo $(npm pkg get version)
+          npm pkg delete "${{ env.last_release_type_field_name }}" "${{ env.last_candidate_version }}"
           git add .
           git commit -m "Prepare ${release_version}"
           git push origin "release/${release_version}"
@@ -97,7 +98,6 @@ jobs:
       - name: Cleaning up
         if: ${{ success() }}
         run: |
-          npm pkg delete "${{ env.last_release_type_field_name }}" "${{ env.last_candidate_version }}"
           release_version="${{ steps.validation.outputs.release_version }}"
           git push origin --delete "release/${release_version}"
           echo ::notice title=${{ env.notification_title }}::"Fast forwarding '${{ env.main_branch }}' and '${{ env.preview_branch }}' branches to ensure they aren't 'behind' on commits after merger"
