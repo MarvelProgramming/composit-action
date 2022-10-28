@@ -43,7 +43,7 @@ jobs:
             echo ::notice title=${{ env.notification_title }}::"release_type set to ${{ inputs.release_type }}"
             npm --no-git-tag-version version ${{ inputs.release_type }}
           fi
-          new_version="${"$(npm pkg get version)":1:-1}"
+          new_version=${"$(npm pkg get version)":1:-1}
           git config user.name 'GitHub Action'
           git config user.email '<>'
           git checkout -fB "release/${new_version}"
