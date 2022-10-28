@@ -57,8 +57,7 @@ jobs:
             npm --no-git-tag-version version --preid='rc' prerelease
           fi
           rc_version="$(echo $(npm pkg get version) | tr -d '"')"
-          npm pkg set "${{ env.last_release_type_field_name }}=${{ inputs.release_type }}"
-          npm pkg set "${{ env.last_candidate_version }}=${new_version}"
+          npm pkg set "${{ env.last_release_type_field_name }}=${{ inputs.release_type }}" "${{ env.last_candidate_version }}=${new_version}"
           git add .
           git commit -m "Prepare ${rc_version}"
           git push origin "release/${new_version}"
