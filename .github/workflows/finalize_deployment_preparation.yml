@@ -55,6 +55,7 @@ jobs:
       - name: Merging release across branches
         if: ${{ success() }}
         run: |
+          echo "${{ env.release_version }}"
           release_version="${{ env.release_version }}"
           echo ::notice title=${{ env.notification_title }}::"Editing 'release/${release_version}' branch to '${{ env.preview_branch }}' branch PR title"
           git tag "${release_version}"
