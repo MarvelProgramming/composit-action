@@ -54,7 +54,9 @@ jobs:
           git tag "${release_version}"
           git push origin --tags
           echo $(npm pkg get version)
+          cd public
           npm pkg delete "${{ env.last_release_type_field_name }}" "${{ env.last_candidate_version }}"
+          cd ..
           git add .
           git commit -m "Prepare ${release_version}"
           git push origin "release/${release_version}"
