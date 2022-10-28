@@ -53,7 +53,7 @@ jobs:
           echo ::notice title=${{ env.notification_title }}::"Editing 'release/${release_version}' branch to '${{ env.preview_branch }}' branch PR title"
           cd public
           echo "$(npm pkg get version)"
-          npm pkg delete "${{ env.last_release_type_field_name }}" "${{ env.last_candidate_version }}"
+          npm pkg delete "deployment_workflow"
           cd ..
           git tag "${release_version}"
           git add .
