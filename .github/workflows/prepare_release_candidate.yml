@@ -48,7 +48,7 @@ jobs:
           else
             echo "::notice title=${{ env.notification_title }}::Pulling from existing branch."
           fi
-          npm --no-git-tag-version version --preid='rc' "pre${{ inputs.release_type }}"
+          npm --no-git-tag-version version --preid='rc' prerelease
           rc_version=$(node -p "require('./package.json').version")
           git add .
           git commit -m "Prepare ${rc_version}"
