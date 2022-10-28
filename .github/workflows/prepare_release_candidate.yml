@@ -43,7 +43,7 @@ jobs:
             echo ::notice title=${{ env.notification_title }}::"release_type set to ${{ inputs.release_type }}"
             npm --no-git-tag-version version ${{ inputs.release_type }}
           fi
-          new_version="$(npm pkg get version)"
+          new_version=$(npm pkg get version)
           git config user.name 'GitHub Action'
           git config user.email '<>'
           git checkout -fB "release/${new_version}"
@@ -54,7 +54,7 @@ jobs:
             echo "::notice title=${{ env.notification_title }}::Pulling from existing branch."
             npm --no-git-tag-version version --preid='rc' prerelease
           fi
-          rc_version="$(npm pkg get version)"
+          rc_version=$(npm pkg get version)
           npm pkg set "${{ env.last_release_type_field_name }}=${{ inputs.release_type }}"
           git add .
           git commit -m "Prepare ${rc_version}"
