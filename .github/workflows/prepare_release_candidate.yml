@@ -36,7 +36,7 @@ jobs:
           echo ::notice title=${{ env.notification_title }}::"Checking for existing release candidate"
           cd public
           previous_release_type="$(npm pkg get ${{ env.last_release_type_field_name }})"
-          if ${{ previous_release_type }} ; then
+          if ${previous_release_type} ; then
             echo ::notice title=${{ env.notification_title }}::"An active release candidate is using ${previous_release_type} -- enforcing the use of that release_type.."
             npm --no-git-tag-version version ${previous_release_type}
           else
