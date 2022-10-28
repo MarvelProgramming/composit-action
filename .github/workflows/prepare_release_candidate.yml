@@ -37,6 +37,7 @@ jobs:
           cd public
           npm --no-git-tag-version version ${{ inputs.release_type }}
           new_version="$(npm pkg get version)"
+          echo "here"
           git config user.name 'GitHub Action'
           git config user.email '<>'
           git checkout -fB "release/${new_version}"
@@ -48,7 +49,6 @@ jobs:
             npm --no-git-tag-version version --preid='rc' prerelease
           fi
           rc_version="$(npm pkg get version)"
-          echo "here"
           npm pkg set "${{ env.last_release_type_field_name }}=${{ inputs.release_type }}"
           git add .
           git commit -m "Prepare ${rc_version}"
