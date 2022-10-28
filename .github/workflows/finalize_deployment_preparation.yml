@@ -7,9 +7,8 @@ env:
   main_branch: 3.2_main
   next_branch: 3.2_next
   node_version: 17
-  custom_npm_field: 'deployment_workflow'
-  last_release_type_field_name: "${{ env.custom_npm_field }}.last_release_type"
-  last_candidate_version: "${{ env.custom_npm_field }}.last_candidate_version"
+  last_release_type_field_name: "deployment_workflow.last_release_type"
+  last_candidate_version: "deployment_workflow.last_candidate_version"
   notification_title: 'Progress'
 
 jobs:
@@ -98,7 +97,7 @@ jobs:
       - name: Cleaning up
         if: ${{ success() }}
         run: |
-          npm pkg delete "${{ env.last_release_type_field_name }}"
+          npm pkg delete "${{ env.last_release_type_field_name }}" "${{ env.last_candidate_version }}"
           release_version="${{ steps.validation.outputs.release_version }}"
           git push origin --delete "release/${release_version}"
           echo ::notice title=${{ env.notification_title }}::"Fast forwarding '${{ env.main_branch }}' and '${{ env.preview_branch }}' branches to ensure they aren't 'behind' on commits after merger"
