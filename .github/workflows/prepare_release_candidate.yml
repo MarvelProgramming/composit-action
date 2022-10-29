@@ -33,8 +33,7 @@ jobs:
           node-version: ${{ env.node_version }}
       - name: Getting previous release type
         id: get_previous_release_type
-        run: |
-          echo "previous_release_type=$(npm pkg get ${{ env.last_release_type_field_name }})" >> $GITHUB_OUTPUT
+        run: echo "previous_release_type=$(npm pkg get ${{ env.last_release_type_field_name }})" >> $GITHUB_OUTPUT
       - name: Prepping release candidate
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -47,6 +46,7 @@ jobs:
           echo ::notice title=${{ env.notification_title }}::"Checking for existing release candidate"
           cd public
           active_release_type="${{ steps.get_previous_release_type.outputs.previous_release_type }}"
+          echo ${active_release_type}
           if ${active_release_type} ; then
             echo ::notice title=${{ env.notification_title }}::"An active release candidate is using ${active_release_type} -- enforcing the use of that release_type.."
           else
