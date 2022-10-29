@@ -33,14 +33,14 @@ jobs:
           node-version: ${{ env.node_version }}
       - name: Getting previous release type
         id: get_previous_release_type
-        run: echo "previous_release_type=$(npm pkg get ${{ env.last_release_type_field_name }})" >> $GITHUB_OUTPUT
+        run: |
+          cd public
+          echo "previous_release_type=$(npm pkg get ${{ env.last_release_type_field_name }})" >> $GITHUB_OUTPUT
       - name: Prepping release candidate
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git fetch
-          git config user.name 'GitHub Action'
-          git config user.email '<>'
           git switch "${{ env.next_branch }}"
           git pull origin "${{ env.next_branch }}"
           echo ::notice title=${{ env.notification_title }}::"Checking for existing release candidate"
@@ -55,6 +55,8 @@ jobs:
           fi
           npm --no-git-tag-version version ${active_release_type}
           new_version="$(echo $(npm pkg get version) | tr -d '"')"
+          git config user.name 'GitHub Action'
+          git config user.email '<>'
           git checkout -fB "release/${new_version}"
           if ! git pull origin "release/${new_version}" ; then
             echo "::notice title=${{ env.notification_title }}::No existing branch to pull from. Using current"
