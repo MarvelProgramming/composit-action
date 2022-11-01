@@ -52,7 +52,7 @@ jobs:
             active_release_type="${{ inputs.release_type }}"
           fi
           
-          echo "active_release_type=${{ env.active_release_type }}" >> $GITHUB_ENV
+          echo "active_release_type=${active_release_type}" >> $GITHUB_ENV
       - name: Setting new_version
         run: |
           cd public
