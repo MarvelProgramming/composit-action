@@ -36,6 +36,7 @@ jobs:
         id: validation
         run: |
           echo ::notice title=${{ env.notification_title }}::"Checking for existing prep release and candidate"
+          cd public
           release_version="$(echo $(npm pkg get ${{ env.last_candidate_version }}) | tr -d '"')"
           git config user.name 'GitHub Action'
           git config user.email '<>'
