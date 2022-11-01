@@ -36,27 +36,26 @@ jobs:
         run: |
           cd public
           echo "previous_release_type=$(npm pkg get ${{ env.last_release_type_field_name }})" >> $GITHUB_OUTPUT
-      - name: Prepping release candidate
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Changing to "next" branch
         run: |
           git fetch
           git switch "${{ env.next_branch }}"
           git pull origin "${{ env.next_branch }}"
+      - name: Prepping release candidate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
           echo ::notice title=${{ env.notification_title }}::"Checking for existing release candidate"
-          cd public
           active_release_type="${{ steps.get_previous_release_type.outputs.previous_release_type }}"
-          echo "active_release_type: ${active_release_type}"
           if ${active_release_type} ; then
-            echo ::notice title=${{ env.notification_title }}::"An active release candidate is using ${active_release_type} -- enforcing the use of that release_type.."
+            echo ::notice title=${{ env.notification_title }}::"An active release candidate is using "${active_release_type}" -- enforcing the use of "${active_release_type}" for the release_type.."
           else
-            echo ::notice title=${{ env.notification_title }}::"release_type set to ${{ inputs.release_type }}"
+            echo ::notice title=${{ env.notification_title }}::"Setting release_type to ${{ inputs.release_type }}"
             active_release_type="${{ inputs.release_type }}"
           fi
+          cd public
           npm --no-git-tag-version version ${active_release_type}
           new_version="$(echo $(npm pkg get version) | tr -d '"')"
-          git config user.name 'GitHub Action'
-          git config user.email '<>'
           git checkout -fB "release/${new_version}"
           if ! git pull origin "release/${new_version}" ; then
             echo "::notice title=${{ env.notification_title }}::No existing branch to pull from. Using current"
@@ -67,23 +66,36 @@ jobs:
           fi
           rc_version="$(echo $(npm pkg get version) | tr -d '"')"
           npm pkg set "${{ env.last_release_type_field_name }}=${active_release_type}" "${{ env.last_candidate_version }}=${new_version}"
+          git config user.name 'GitHub Action'
+          git config user.email '<>'
           git add .
           git commit -m "Prepare ${rc_version}"
           git push origin "release/${new_version}"
           echo ::notice title=${{ env.notification_title }}::"Creating PR from 'release/${new_version}' branch to '${{ env.preview_branch }}' branch"
           if ! gh pr create --title "Prepare ${rc_version}" --body '' --base "${{ env.preview_branch }}" ; then
-            echo ::notice title=${{ env.notification_title }}::"Existing PR found, editing instead"
-            gh pr edit --title "Prepare ${rc_version}"
+            echo ::notice title=${{ env.notification_title }}::"Existing PR found, editing title instead"
+            
+            if ! gh pr edit --title "Prepare ${rc_version}" ; then
+              echo ::error title=${{ env.notification_title }}::"Failed to edit existing PR's title!"
+            fi
           fi
+      - run: |
+          echo "RC version is: ${rc_version}"
 
 ##COMMENTS##
+
+# Gets the current version of the preview branch (since this workflow starts there) using the
+# "npm pkg get" command (which returns JSON) and stores it in an environment output called
+# previous_release_type. This is used to prevent a developer from accidentally choosing different
+# versions (i.e. major, minor, patch) throughout the preparation process
+# >> echo "previous_release_type=$(npm pkg get ${{ env.last_release_type_field_name }})" >> $GITHUB_OUTPUT
 
 # Increases part of package.json version number by 1, based on the 'release_type' input
 # >> npm --no-git-tag-version version ${{ inputs.release_type }}
 
-# Gets the package.json version, removes the quotes from the sting using bash's parameter expansion,
-# and stores it in the 'new_version' bash variable
-# >> new_version=${"$(npm pkg get version)":1:-1}
+# Gets the package.json version using "npm pkg get version" (which returns JSON), 
+# trims the quotes from the sting, and stores it in the 'new_version' bash variable
+# >> new_version="$(echo $(npm pkg get version) | tr -d '"')"
 
 # Checks out to 'release/x.x.x' if it exists and resets, otherwise it makes a new branch
 # >> git checkout -fB "release/${new_version}"
