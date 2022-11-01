@@ -75,6 +75,7 @@ jobs:
           rc_version="$(echo $(npm pkg get version) | tr -d '"')"
       - name: Setting custom npm fields
         run: |
+          cd public
           npm pkg set "${{ env.last_release_type_field_name }}=${active_release_type}"
           npm pkg set "${{ env.last_candidate_version }}=${new_version}"
       - name: Pushing changes and creating/editing PR
