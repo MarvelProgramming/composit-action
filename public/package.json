@@ -1,6 +1,6 @@
 {
   "name": "public",
-  "version": "1.0.0",
+  "version": "1.0.1-rc.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -8,5 +8,9 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "deployment_workflow": {
+    "last_release_type": "patch",
+    "last_candidate_version": "1.0.1"
+  }
 }
