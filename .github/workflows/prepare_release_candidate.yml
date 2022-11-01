@@ -43,16 +43,15 @@ jobs:
       - name: Setting active_release_type
         run: |
           cd public
-          active_release_type="$(npm pkg get ${{ env.last_release_type_field_name }} | tr -d '"')"
+          previous_release_type="$(npm pkg get ${{ env.last_release_type_field_name }} | tr -d '"')"
           
-          if ${active_release_type} ; then
+          if ${previous_release_type} ; then
             echo ::notice title=${{ env.notification_title }}::"An active release candidate is using "${{ env.active_release_type }}" -- enforcing the use of "${{ env.active_release_type }}" for the release_type.."
+            echo "active_release_type=${previous_release_type}" >> $GITHUB_ENV
           else
             echo ::notice title=${{ env.notification_title }}::"Setting release_type to ${{ inputs.release_type }}"
-            active_release_type="${{ inputs.release_type }}"
+            echo "active_release_type=${{ inputs.release_type }}" >> $GITHUB_ENV
           fi
-          
-          echo "active_release_type=${active_release_type}" >> $GITHUB_ENV
       - name: Setting new_version
         run: |
           cd public
