@@ -31,33 +31,40 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
-      - name: Getting previous release type
-        id: get_previous_release_type
+      - name: Creating get_current_version function
         run: |
-          cd public
-          echo "previous_release_type=$(npm pkg get ${{ env.last_release_type_field_name }} | tr -d '"')" >> $GITHUB_ENV
+          get_current_version() {
+            return "$(npm pkg get version | tr -d '"')";
+          }
       - name: Changing to "next" branch
         run: |
-          echo "previous_release_type is: ${{ env.previous_release_type }}"
-          exit
           git fetch
           git switch "${{ env.next_branch }}"
           git pull origin "${{ env.next_branch }}"
-      - name: Prepping release candidate
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setting active_release_type
         run: |
-          echo ::notice title=${{ env.notification_title }}::"Checking for existing release candidate"
-          active_release_type="${{ steps.get_previous_release_type.outputs.previous_release_type }}"
+          cd public
+          active_release_type="$(npm pkg get ${{ env.last_release_type_field_name }} | tr -d '"')"
+          
           if ${active_release_type} ; then
             echo ::notice title=${{ env.notification_title }}::"An active release candidate is using "${active_release_type}" -- enforcing the use of "${active_release_type}" for the release_type.."
           else
             echo ::notice title=${{ env.notification_title }}::"Setting release_type to ${{ inputs.release_type }}"
             active_release_type="${{ inputs.release_type }}"
           fi
+          
+          echo "active_release_type=${active_release_type}" >> $GITHUB_ENV
+      - name: Setting new_version
+        run: |
           cd public
-          npm --no-git-tag-version version ${active_release_type}
-          new_version="$(echo $(npm pkg get version) | tr -d '"')"
+          npm --no-git-tag-version version ${{ env.active_release_type }}
+          echo "new_version=$(get_current_version)" >> $GITHUB_ENV
+      - name: Prepping release candidate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "${{ env.new_version }}"
+          echo ::notice title=${{ env.notification_title }}::"Checking for existing release candidate"
           git checkout -fB "release/${new_version}"
           if ! git pull origin "release/${new_version}" ; then
             echo "::notice title=${{ env.notification_title }}::No existing branch to pull from. Using current"
