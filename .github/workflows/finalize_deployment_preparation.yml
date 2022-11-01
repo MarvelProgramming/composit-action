@@ -23,21 +23,25 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
+      - name: Checking for last candidate version
+        if: ${{ success() }}
+        run: |
+          cd public
+          if [ -z "$(npm pkg get ${{ env.last_candidate_version }})" ] ; then
+            echo ::error title=${{ env.notification_title }}::"Couldn't find previous candidate version! Either the prepare_release_candidate workflow was never run, or there was an issue while it was running!"
+            exit 1
+          fi
       - name: Checking for prepared release with candidate
+        if: ${{ success() }}
         id: validation
         run: |
           echo ::notice title=${{ env.notification_title }}::"Checking for existing prep release and candidate"
-          cd public
-          if [ -z "$(npm pkg get ${{ env.last_candidate_version }})" ] ; then
-            echo ::notice title=${{ env.notification_title }}::"No release candidate exists! You must run the prepare_release_candidate at least once before finalizing!"
-            exit 1
-          fi
+          release_version="$(echo $(npm pkg get ${{ env.last_candidate_version }}) | tr -d '"')"
           git config user.name 'GitHub Action'
           git config user.email '<>'
-          release_version="$(echo $(npm pkg get ${{ env.last_candidate_version }}) | tr -d '"')"
           git fetch -q
           if ! git checkout -f "release/${release_version}" ; then
-            echo ::error title=${{ env.notification_title }}::"At least one "prepared release" must exist before finalizing!"
+            echo ::error title=${{ env.notification_title }}::"Failed to checkout release branch!"
             exit 1
           fi
           git pull origin "release/${release_version}"
@@ -93,7 +97,7 @@ jobs:
             echo ::error title=${{ env.notification_title }}::"Failed to merge '${{ env.main_branch }}' branch into '${{ env.next_branch }}' branch"
             exit 1
           fi
-      - name: Cleaning up
+      - name: Deleting release branch and fast forwarding the others
         if: ${{ success() }}
         run: |
           release_version="${{ steps.validation.outputs.release_version }}"
@@ -107,7 +111,7 @@ jobs:
           
 ##COMMENTS##
 
-# Gives this workflow the permissions necessary for making PRs and merging.
+# Gives this workflow the permissions necessary for making PRs and merging (does not override review requirement).
 # >> GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 # Increases part of package.json version number by 1, based on the version part defined in the custom npm field
@@ -124,7 +128,7 @@ jobs:
 
 # By default, the "npm version" command will throw an exception if you attempt to update the version to what
 # it's already set to (e.g. trying to set the version to "1.0.0" when it's already "1.0.0"). If an exception
-# is thrown, we assume that no release candidates have been created (which generally shouldn't be the case, since
+# is thrown, we assume that no release candidates have been created (which shouldn't be the case, since
 # we want to make sure things work before publishing changes), stop the workflow and issue an error message
 # >> if ! npm --no-git-tag-version version $release_version
 
