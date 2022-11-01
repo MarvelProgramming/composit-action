@@ -36,8 +36,10 @@ jobs:
         run: |
           cd public
           echo "previous_release_type=$(npm pkg get ${{ env.last_release_type_field_name }})" >> $GITHUB_OUTPUT
+          echo "test=1234" >> $GITHUB_ENV
       - name: Changing to "next" branch
         run: |
+          echo "Test is: ${{ env.test }}"
           git fetch
           git switch "${{ env.next_branch }}"
           git pull origin "${{ env.next_branch }}"
@@ -79,8 +81,6 @@ jobs:
               echo ::error title=${{ env.notification_title }}::"Failed to edit existing PR's title!"
             fi
           fi
-      - run: |
-          echo "RC version is: ${rc_version}"
 
 ##COMMENTS##
 
