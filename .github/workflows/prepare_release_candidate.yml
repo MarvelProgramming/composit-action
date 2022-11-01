@@ -35,11 +35,11 @@ jobs:
         id: get_previous_release_type
         run: |
           cd public
-          echo "previous_release_type=$(npm pkg get ${{ env.last_release_type_field_name }})" >> $GITHUB_OUTPUT
-          echo "test=$(echo 1234)" >> $GITHUB_ENV
+          echo "previous_release_type=$(npm pkg get ${{ env.last_release_type_field_name }})" >> $GITHUB_ENV
       - name: Changing to "next" branch
         run: |
-          echo "Test is: ${{ env.test }}"
+          echo "Test is: ${{ env.previous_release_type }}"
+          exit
           git fetch
           git switch "${{ env.next_branch }}"
           git pull origin "${{ env.next_branch }}"
