@@ -31,11 +31,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.node_version }}
-      - name: Creating get_current_version function
+      - name: Configuring git
         run: |
-          get_current_version() {
-            return "$(npm pkg get version | tr -d '"')";
-          }
+          git config user.name 'GitHub Action'
+          git config user.email '<>'
       - name: Changing to "next" branch
         run: |
           git fetch
@@ -47,44 +46,49 @@ jobs:
           active_release_type="$(npm pkg get ${{ env.last_release_type_field_name }} | tr -d '"')"
           
           if ${active_release_type} ; then
-            echo ::notice title=${{ env.notification_title }}::"An active release candidate is using "${active_release_type}" -- enforcing the use of "${active_release_type}" for the release_type.."
+            echo ::notice title=${{ env.notification_title }}::"An active release candidate is using "${{ env.active_release_type }}" -- enforcing the use of "${{ env.active_release_type }}" for the release_type.."
           else
             echo ::notice title=${{ env.notification_title }}::"Setting release_type to ${{ inputs.release_type }}"
             active_release_type="${{ inputs.release_type }}"
           fi
           
-          echo "active_release_type=${active_release_type}" >> $GITHUB_ENV
+          echo "active_release_type=${{ env.active_release_type }}" >> $GITHUB_ENV
       - name: Setting new_version
         run: |
           cd public
           npm --no-git-tag-version version ${{ env.active_release_type }}
-          echo "new_version=$(get_current_version)" >> $GITHUB_ENV
-      - name: Prepping release candidate
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "new_version=$(npm pkg get version | tr -d '"')" >> $GITHUB_ENV
+      - name: Setting rc_version
         run: |
-          echo "${{ env.new_version }}"
           echo ::notice title=${{ env.notification_title }}::"Checking for existing release candidate"
-          git checkout -fB "release/${new_version}"
-          if ! git pull origin "release/${new_version}" ; then
+          cd public
+          git checkout -fB "release/${{ env.new_version }}"
+          
+          if ! git pull origin "release/${{ env.new_version }}" ; then
             echo "::notice title=${{ env.notification_title }}::No existing branch to pull from. Using current"
             npm --no-git-tag-version version --preid='rc' "pre${active_release_type}"
           else
             echo "::notice title=${{ env.notification_title }}::Pulling from existing branch."
             npm --no-git-tag-version version --preid='rc' prerelease
           fi
+          
           rc_version="$(echo $(npm pkg get version) | tr -d '"')"
-          npm pkg set "${{ env.last_release_type_field_name }}=${active_release_type}" "${{ env.last_candidate_version }}=${new_version}"
-          git config user.name 'GitHub Action'
-          git config user.email '<>'
+      - name: Setting custom npm fields
+        run: |
+          npm pkg set "${{ env.last_release_type_field_name }}=${active_release_type}"
+          npm pkg set "${{ env.last_candidate_version }}=${new_version}"
+      - name: Pushing changes and creating/editing PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
           git add .
-          git commit -m "Prepare ${rc_version}"
-          git push origin "release/${new_version}"
-          echo ::notice title=${{ env.notification_title }}::"Creating PR from 'release/${new_version}' branch to '${{ env.preview_branch }}' branch"
-          if ! gh pr create --title "Prepare ${rc_version}" --body '' --base "${{ env.preview_branch }}" ; then
+          git commit -m "Prepare ${{ env.rc_version }}"
+          git push origin "release/${{ env.new_version }}"
+          echo ::notice title=${{ env.notification_title }}::"Creating PR from 'release/${{ env.new_version }}' branch to '${{ env.preview_branch }}' branch"
+          if ! gh pr create --title "Prepare ${{ env.rc_version }}" --body '' --base "${{ env.preview_branch }}" ; then
             echo ::notice title=${{ env.notification_title }}::"Existing PR found, editing title instead"
             
-            if ! gh pr edit --title "Prepare ${rc_version}" ; then
+            if ! gh pr edit --title "Prepare ${{ env.rc_version }}" ; then
               echo ::error title=${{ env.notification_title }}::"Failed to edit existing PR's title!"
             fi
           fi
