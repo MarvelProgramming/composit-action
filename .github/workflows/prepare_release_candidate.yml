@@ -71,7 +71,7 @@ jobs:
             npm --no-git-tag-version version --preid='rc' prerelease
           fi
           
-          rc_version="$(echo $(npm pkg get version) | tr -d '"')"
+          echo "rc_version=$(npm pkg get version | tr -d '"')" >> $GITHUB_ENV
       - name: Setting custom npm fields
         run: |
           cd public
