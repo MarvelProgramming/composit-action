@@ -36,7 +36,7 @@ jobs:
         run: |
           cd public
           echo "previous_release_type=$(npm pkg get ${{ env.last_release_type_field_name }})" >> $GITHUB_OUTPUT
-          echo "test=1234" >> $GITHUB_ENV
+          echo "test=$(echo 1234)" >> $GITHUB_ENV
       - name: Changing to "next" branch
         run: |
           echo "Test is: ${{ env.test }}"
