@@ -151,8 +151,11 @@ jobs:
 # the current release version, making it accessible to future steps in the workflow
 # >> echo "release_version=$(echo "${release_version}")" >> $GITHUB_OUTPUT
 
-# Grabs the output of the step with an id of 'validation' and stores in a variable called 'release_version'
-# >> release_version="${{ steps.validation.outputs.release_version }}"
+# Gets the last candidate version from a custom npm package.json field "npm pkg get" command (which returns JSON),
+# trims the quotes, and stores it in an environment output called previous_release_type. This is used to determine
+# the version type to use when finalizing the release, based on what was used in the prepare_release_candidate
+# workflow
+# >> echo "release_version=$(echo $(npm pkg get ${{ env.last_candidate_version }}) | tr -d '"')" >> $GITHUB_ENV
 
 # Will only execute the step if the previous one ran successfully (this is the default behavior, but it's
 # better to be explicit in case that changes in the future)
@@ -161,13 +164,8 @@ jobs:
 # A convenient way to send local tags to the remote
 # >> git push origin --tags
 
-# Each instance of this command under the 'Merging release across branches' step is creating a pr.
-# The '--base' option allows us to choose which branch we'd like to merge into.
-# The '--fill' option automatically populates the body of the PR with commit messages
-# >> gh pr create --title "Release ${release_version}" --base "${{ env.main_branch }}" --fill
-
-# We delete this custom npm field to prevent finalize_deployment_preparation from being ran again without
-# prepare_release_candidate being executed at least once 
+# We delete this custom npm field to clean up the package.json file and prevent finalize_deployment_preparation
+# from being ran again without prepare_release_candidate being executed at least once before
 # >> npm pkg delete "${{ env.last_release_type_field_name }}"
 
 # Deletes the release candidate branch (e.g. 'release/{x.y.z}') to avoid littering the branch list
